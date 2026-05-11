@@ -1,43 +1,28 @@
-import { catColor } from '@/lib/catColors'
-import { slugToEnglish } from '@/lib/helper'
-import Link from 'next/link'
+"use client"
 
-export default function CategoryUnderline({ name, label }) {
+import { memo } from 'react'
+import Link from 'next/link'
+import { catColor } from '@/lib/catColors'
+
+const CategoryUnderline = ({ name, label, url }) => {
     return (
         <div
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderBottom: `3px solid ${catColor(name)}`,
-                paddingBottom: 8,
-                marginBottom: 16,
-            }}
+            className="flex items-center justify-between pb-2 mb-4 gap-3"
+            style={{ borderBottom: `3px solid ${catColor(name)}` }}
         >
-            <h3
-                className="mr"
-                style={{
-                    margin: 0,
-                    fontSize: 18,
-                    fontWeight: 700,
-                    color: 'var(--text-primary)',
-                }}
-            >
+            <h3 className="mr m-0 text-base sm:text-lg font-bold">
                 {label || name}
             </h3>
+
             <Link
-                href={`/category/${slugToEnglish(name)}`}
-                className="mr"
-                style={{
-                    fontSize: 12,
-                    color: catColor(name),
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                    cursor: 'pointer',
-                }}
+                href={url || '/'}
+                className="mr text-[11px] sm:text-[12px] font-semibold no-underline cursor-pointer whitespace-nowrap shrink-0"
+                style={{ color: catColor(name) }}
             >
                 सर्व पहा →
             </Link>
         </div>
     )
 }
+
+export default memo(CategoryUnderline)

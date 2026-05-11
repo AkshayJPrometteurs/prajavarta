@@ -1,8 +1,8 @@
-import { Noto_Sans_Devanagari } from "next/font/google";
+import { Noto_Sans } from "next/font/google";
 import "./globals.css";
 
 // ✅ Add Marathi font
-const devanagari = Noto_Sans_Devanagari({
+const notoSans = Noto_Sans({
 	variable: "--font-devanagari",
 	subsets: ["devanagari"],
 	weight: ["400", "500", "600", "700"],
@@ -15,7 +15,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
 	return (
-		<html lang="mr" className={`${devanagari.variable} h-full antialiased`}>
+		<html lang="mr" className={`${notoSans.variable} h-full antialiased`}>
 			<body className="min-h-full flex flex-col bg-white text-slate-900">
 				{children}
 			</body>

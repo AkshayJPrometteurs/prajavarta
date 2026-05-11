@@ -1,70 +1,37 @@
 import Link from "next/link"
+import { memo } from "react"
 import ImagePlaceholder from "../ImagePlaceholder"
 import Badge from "../ui/Badge"
 import CategoryChip from "../ui/CategoryChip"
 import Meta from "../ui/Meta"
 
-export default function StandardCard({ category, headline, layout = 'row', badge }) {
-    if (layout === 'row') {
-        return (
-            <Link href={`/article/${category}`}>
-                <article
-                    style={{
-                        display: 'grid',
-                        gridTemplateColumns: '112px 1fr',
-                        gap: 12,
-                        alignItems: 'start',
-                    }}
-                >
-                    <div style={{ position: 'relative' }}>
-                        <ImagePlaceholder ratio="1/1" label="240×240" />
-                        {badge && <Badge type={badge} small />}
-                    </div>
-                    <div>
-                        <CategoryChip name={category} size="sm" />
-                        <h4
-                            className="mr"
-                            style={{
-                                margin: '6px 0 4px',
-                                fontSize: 15,
-                                lineHeight: 1.4,
-                                fontWeight: 600,
-                                color: 'var(--text-primary)',
-                            }}
-                        >
-                            {headline}
-                        </h4>
-                        <Meta minutes={2} compact />
-                    </div>
-                </article>
-            </Link>
-        )
-    }
-
+const StandardCard = ({ category, headline, layout = 'row', badge }) => {
     return (
-        <Link href={`/article/${category}`}>
-            <article className="w-full md:w-auto">
-                <div style={{ position: 'relative' }}>
-                    <ImagePlaceholder ratio="16/9" label="600×338" />
+        <article className={`w-full md:w-auto ${layout === 'row' ? 'grid grid-cols-[96px_1fr] sm:grid-cols-[112px_1fr] gap-3 items-start' : ''}`}>
+            <div className="relative">
+                <Link href={`/article/${category}`}>
+                    <ImagePlaceholder
+                        ratio={layout === 'row' ? '1/1' : '16/9'}
+                        label={layout === 'row' ? '240×240' : '600×338'}
+                    />
                     {badge && <Badge type={badge} />}
-                </div>
-                <div style={{ paddingTop: 8 }}>
+                </Link>
+            </div>
+
+            <div className="pt-2">
+                <Link href={`/category/${category}`}>
                     <CategoryChip name={category} size="sm" />
-                    <h4
-                        className="mr"
-                        style={{
-                            margin: '6px 0 4px',
-                            fontSize: 16,
-                            lineHeight: 1.4,
-                            fontWeight: 600,
-                            color: 'var(--text-primary)',
-                        }}
-                    >
+                </Link>
+
+                <Link href={`/article/${category}`}>
+                    <h4 className="mr mt-1.5 mb-1 font-semibold">
                         {headline}
                     </h4>
-                    <Meta minutes={3} compact />
-                </div>
-            </article>
-        </Link>
+                </Link>
+                <Meta minutes={3} compact />
+            </div>
+        </article>
     )
 }
+
+export default memo(StandardCard)

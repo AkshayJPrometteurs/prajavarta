@@ -1,25 +1,31 @@
+"use client"
+
+import { memo } from 'react'
 import { ClockIcon } from './Icons'
 
-export default function Meta({ author, minutes = 3, compact }) {
+const Meta = ({ author, minutes = 3, compact }) => {
     return (
-        <div
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                marginTop: compact ? 6 : 10,
-                fontSize: 11,
-                color: 'var(--text-tertiary)',
-            }}
-        >
-            {author && <span className="mr">{author}</span>}
+        <div className={`flex items-center flex-wrap gap-2 text-[11px] text-gray-600 ${compact ? 'mt-1.5' : 'mt-2.5'}`}>
+            {author && (
+                <span className="mr truncate max-w-32 sm:max-w-none">
+                    {author}
+                </span>
+            )}
+
             {author && <span>·</span>}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+
+            <span className="inline-flex items-center gap-1 whitespace-nowrap">
                 <ClockIcon />
-                {minutes} मिनिटे
+                <span className="mr">{minutes} मिनिटे</span>
             </span>
+
             <span>·</span>
-            <span className="mr">२९ एप्रिल</span>
+
+            <span className="mr whitespace-nowrap">
+                २९ एप्रिल
+            </span>
         </div>
     )
 }
+
+export default memo(Meta)

@@ -35,7 +35,7 @@ const ArticleSidebar = () => {
     return (
         <aside className="space-y-5">
             {/* Desktop share rail */}
-            <div className="p-4 border border-(--border-default) flex items-center gap-3.5">
+            <div className="p-4 border border-(--border-default) flex items-center gap-3.5 w-fit">
                 <div className="text-[11px] font-bold tracking-[0.06em] uppercase text-(--text-tertiary)">
                     Share
                 </div>

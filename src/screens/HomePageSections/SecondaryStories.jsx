@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import StandardCard from "../../components/cards/StandardCard";
 
 const SecondaryStories = () => {
@@ -9,7 +10,6 @@ const SecondaryStories = () => {
 				<StandardCard
 					category="राजकारण"
 					headline="मुख्यमंत्र्यांच्या शपथविधीसाठी मुंबईत वानखेडेवर कार्यक्रम होणार"
-					badge="LIVE"
 					layout="col"
 				/>
 				<StandardCard
@@ -22,10 +22,11 @@ const SecondaryStories = () => {
 				<StandardCard
 					category="गुन्हेगारी"
 					headline="कोथरूडमध्ये बँक दरोडा प्रकरणी तीन संशयित ताब्यात"
+					layout="col"
 				/>
 			</div>
 		</div>
 	);
 };
 
-export default SecondaryStories;
+export default memo(SecondaryStories);

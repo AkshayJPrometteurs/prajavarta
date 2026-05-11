@@ -1,25 +1,17 @@
+"use client"
+
+import { memo } from "react"
 import { catColor } from "@/lib/catColors"
 
-export default function CategoryChip({ name, size = 'md' }) {
-    const padding = size === 'sm' ? '3px 8px' : '5px 10px'
-    const fontSize = size === 'sm' ? 10 : 11
-
+const CategoryChip = ({ name, size = 'md' }) => {
     return (
         <span
-            className="mr"
-            style={{
-                display: 'inline-block',
-                padding,
-                fontSize,
-                fontWeight: 700,
-                letterSpacing: '0.04em',
-                color: '#fff',
-                background: catColor(name),
-                borderRadius: 2,
-                textTransform: 'uppercase',
-            }}
+            className={`mr inline-block font-bold tracking-[0.04em] text-white uppercase rounded-xs whitespace-nowrap text-xs py-1 ${size === 'sm' ? 'px-2' : 'px-3'}`}
+            style={{ background: catColor(name) }}
         >
             {name}
         </span>
     )
 }
+
+export default memo(CategoryChip)

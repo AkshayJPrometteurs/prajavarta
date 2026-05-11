@@ -1,9 +1,12 @@
+"use client"
+
+import { memo } from "react";
 import CategoryUnderline from "./CategoryUnderline";
 import FeaturedCard from "../cards/FeaturedCard";
 import StandardCard from "../cards/StandardCard";
 import { useScreenSize } from "../../hooks/useScreenSize";
 
-export default function CategorySection({ cat, hero, stories }) {
+const CategorySection = ({ cat, hero, stories }) => {
     const { screenWidth } = useScreenSize();
     return (
         <section style={{ padding: '8px 0 24px' }}>
@@ -24,7 +27,11 @@ export default function CategorySection({ cat, hero, stories }) {
                             }}
                         >
                             {stories.map((s, i) => (
-                                <StandardCard key={i} category={cat} headline={s} />
+                                <StandardCard
+                                    key={i}
+                                    category={cat}
+                                    headline={s}
+                                />
                             ))}
                         </div>
                     </div>
@@ -50,3 +57,5 @@ export default function CategorySection({ cat, hero, stories }) {
         </section>
     )
 }
+
+export default memo(CategorySection)

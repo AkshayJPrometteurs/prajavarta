@@ -1,9 +1,11 @@
-export default function ImagePlaceholder({
+import { memo } from "react"
+
+const ImagePlaceholder = ({
     ratio = '16/9',
     label = 'hero image · 1200px+',
     height,
     style,
-}) {
+}) => {
     return (
         <div
             className="imgph"
@@ -18,3 +20,5 @@ export default function ImagePlaceholder({
         </div>
     )
 }
+
+export default memo(ImagePlaceholder)

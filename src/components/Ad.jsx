@@ -1,4 +1,8 @@
-export default function Ad({
+"use client"
+
+import { memo } from "react"
+
+const Ad = ({
     id,
     name,
     size,
@@ -8,7 +12,7 @@ export default function Ad({
     fluid,
     style,
     className,
-}) {
+}) => {
     return (
         <div
             className={`adPlaceholder ${className || ''}`}
@@ -27,3 +31,5 @@ export default function Ad({
         </div>
     )
 }
+
+export default memo(Ad)

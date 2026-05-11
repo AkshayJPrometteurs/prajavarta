@@ -1,41 +1,28 @@
-export default function BreakingStrip() {
+import { memo } from "react"
+
+const BREAKING_TEXT = [
+    "विधानसभा निवडणूक निकाल जाहीर",
+    "सरकार स्थापनेच्या हालचालींना वेग",
+    "मुंबईत जोरदार पाऊस"
+]
+
+const BreakingStrip = () => {
     return (
-        <div
-            style={{
-                height: 40,
-                background: 'var(--color-breaking)',
-                color: '#fff',
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0 16px',
-                overflow: 'hidden',
-                gap: 12,
-            }}
-        >
-            <span
-                style={{
-                    fontSize: 11,
-                    fontWeight: 800,
-                    letterSpacing: '0.08em',
-                    padding: '3px 8px',
-                    background: 'rgba(255,255,255,0.2)',
-                    borderRadius: 3,
-                    flexShrink: 0,
-                }}
-            >
+        <div className="h-10 bg-(--color-breaking) text-white flex items-center px-4 overflow-hidden gap-3">
+            <span className="text-[11px] font-extrabold tracking-[0.08em] px-2 py-0.75 bg-white/20 rounded-[3px] shrink-0">
                 BREAKING
             </span>
-            <span
-                className="mr"
-                style={{
-                    fontSize: 13,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                }}
-            >
-                विधानसभा निवडणूक निकाल जाहीर · सरकार स्थापनेच्या हालचालींना वेग · मुंबईत जोरदार पाऊस ·
+
+            <span className="mr text-[13px] whitespace-nowrap overflow-hidden text-ellipsis">
+                {BREAKING_TEXT.map((text, index) => (
+                    <span key={index}>
+                        {text}
+                        {index < BREAKING_TEXT.length - 1 && " | "}
+                    </span>
+                ))}
             </span>
         </div>
     )
 }
+
+export default memo(BreakingStrip)

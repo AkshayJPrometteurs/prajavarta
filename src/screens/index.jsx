@@ -1,7 +1,6 @@
 "use client"
 import { memo } from "react"
 import Ad from "../components/Ad"
-import HeroSection from "./HomePageSections/HeroSection"
 import SecondaryStories from "./HomePageSections/SecondaryStories"
 import TrendingModule from "./HomePageSections/TrendingModule"
 import RecommendedGrid from "./HomePageSections/RecommendedGrid"
@@ -10,6 +9,7 @@ import CategorySection from "@/components/ui/CategorySection"
 import MainLayout from "@/layout/MainLayout"
 import MainPageSidebar from "./Sidebars/MainPageSidebar"
 import SectionLayout from "@/layout/SectionLayout"
+import HeroCard from "@/components/cards/HeroCard"
 
 const TRENDING_ITEMS = [
     { c: 'राजकारण', h: 'अजित पवार गटाची आज महत्त्वाची बैठक, मंत्रिपदाच्या मुद्द्यावर चर्चा' },
@@ -82,7 +82,13 @@ const MainPage = () => {
         <MainLayout isBannerAdvertisement>
             <section>
                 <SectionLayout sidebar={<MainPageSidebar />}>
-                    <HeroSection />
+                    {/* Hero story */}
+                    <HeroCard
+                        category="महाराष्ट्र"
+                        headline="विधानसभेत सत्तासंघर्ष: सरकार स्थापनेच्या हालचालींना वेग, दिल्लीत रात्री बैठक"
+                        subtitle="राज्यपाल भेट उद्या सकाळी; नवीन मंत्रिमंडळाची संभाव्य रचना समोर"
+                        redirectUrl="/article/maharashtra"
+                    />
                     <SecondaryStories />
 
                     {screenWidth < 992 && (
