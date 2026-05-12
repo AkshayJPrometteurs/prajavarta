@@ -2,9 +2,10 @@
 
 import { Popover, PopoverButton, PopoverPanel, Transition } from "@headlessui/react";
 import Logo from "@/components/Logo";
-import { HamburgerIcon, SearchIcon } from "@/components/ui/Icons";
+import { HamburgerIcon, SearchIcon, UserIcon } from "@/components/ui/Icons";
 import Link from "next/link";
 import { useState } from "react";
+import { useReduxAuth } from "@/hooks/useReduxAuth";
 
 const NAV_ITEMS = [
     { name: 'मुख्यपृष्ठ', link: '/' },
@@ -44,6 +45,7 @@ const COMPANY_LINKS = [
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const { user, logout } = useReduxAuth();
 
     const toggleMenu = () => setIsMenuOpen((v) => !v);
     const toggleSearch = () => setIsSearchOpen((v) => !v);
@@ -225,9 +227,41 @@ export default function Header() {
                             <SearchIcon size={18} />
                         </button>
 
-                        <button className="bg-(--brand-accent) text-[#1a1a1a] px-3.5 py-2 rounded font-bold text-[13px] cursor-pointer">
-                            Sign in
-                        </button>
+                        {user ? (
+                            <Popover className="relative">
+                                <PopoverButton className="flex items-center justify-center w-9 h-9 bg-(--brand-accent) text-[#1a1a1a] rounded-full font-bold text-[13px] cursor-pointer hover:opacity-90 transition">
+                                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                                </PopoverButton>
+                                
+                                <Transition
+                                    enter="transition duration-150 ease-out"
+                                    enterFrom="opacity-0 -translate-y-1.5"
+                                    enterTo="opacity-100 translate-y-0"
+                                    leave="transition duration-100 ease-in"
+                                    leaveFrom="opacity-100 translate-y-0"
+                                    leaveTo="opacity-0 -translate-y-1.5"
+                                >
+                                    <PopoverPanel className="absolute top-[calc(100%+8px)] right-0 w-56 bg-white text-[#1a1a1a] shadow-lg z-200 rounded-lg py-2 focus:outline-none">
+                                        <div className="px-4 py-2 border-b border-gray-100">
+                                            <p className="text-sm font-semibold text-gray-900">{user.name}</p>
+                                            <p className="text-xs text-gray-500">{user.email}</p>
+                                        </div>
+                                        <button
+                                            onClick={logout}
+                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+                                        >
+                                            Sign out
+                                        </button>
+                                    </PopoverPanel>
+                                </Transition>
+                            </Popover>
+                        ) : (
+                            <Link href="/login">
+                                <button className="bg-(--brand-accent) text-[#1a1a1a] px-3.5 py-2 rounded font-bold text-[13px] cursor-pointer">
+                                    Sign in
+                                </button>
+                            </Link>
+                        )}
                     </div>
                 </div>
             </header>

@@ -1,0 +1,225 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  ADMANAGER
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AdType {
+  BANNER
+  SIDEBAR
+  INLINE
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  name         String
+  role         UserRole  @default(USER)
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLogin    DateTime? @map("last_login")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  articles       Article[]
+  advertisements Advertisement[]
+
+  @@map("users")
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String   @unique
+  description String?
+  parentId    Int?     @map("parent_id")
+  color       String? // for UI theming
+  icon        String? // icon name or URL
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Statistics
+  articleCount Int @default(0) @map("article_count")
+  totalViews   Int @default(0) @map("total_views")
+
+  // Relations
+  parent       Category?      @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children     Category[]     @relation("CategoryHierarchy")
+  articles     Article[]
+  breakingNews BreakingNews[]
+
+  @@map("categories")
+}
+
+model Author {
+  id           Int      @id @default(autoincrement())
+  name         String
+  slug         String   @unique
+  bio          String?  @db.Text
+  profileImage String?  @map("profile_image")
+  email        String   @unique
+  phone        String?
+  designation  String? // e.g., "राजकीय संपादक", "वरिष्ठ संपादक"
+  expertise    String? // e.g., "राजकारण, धोरण"
+  location     String? // e.g., "पुणे · मुंबई"
+  experience   Int? // years of experience
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Social Media Links
+  twitter   String?
+  facebook  String?
+  linkedin  String?
+  instagram String?
+  youtube   String?
+
+  // Statistics
+  articleCount Int @default(0) @map("article_count")
+  totalViews   Int @default(0) @map("total_views")
+
+  // Relations
+  articles Article[]
+
+  @@map("authors")
+}
+
+model Tag {
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String   @unique
+  description String?
+  color       String? // for UI theming
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Statistics
+  articleCount Int  @default(0) @map("article_count")
+  totalViews   Int  @default(0) @map("total_views")
+  trendingRank Int? @map("trending_rank")
+
+  // Relations
+  articles ArticleTag[]
+
+  @@map("tags")
+}
+
+model Article {
+  id            Int           @id @default(autoincrement())
+  title         String
+  slug          String        @unique
+  content       String        @db.Text
+  excerpt       String?
+  featuredImage String?       @map("featured_image")
+  status        ArticleStatus @default(DRAFT)
+  viewCount     Int           @default(0) @map("view_count")
+  trendingScore Int           @default(0) @map("trending_score")
+  readTime      Int?          @map("read_time") // in minutes
+  publishedAt   DateTime?     @map("published_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  // SEO and Metadata
+  metaTitle       String? @map("meta_title")
+  metaDescription String? @map("meta_description")
+  keywords        String? // comma-separated keywords
+
+  // Social sharing
+  shareCount   Int @default(0) @map("share_count")
+  commentCount Int @default(0) @map("comment_count")
+
+  // Foreign Keys
+  authorId   Int    @map("author_id")
+  categoryId Int    @map("category_id")
+
+  // Relations
+  author   Author       @relation(fields: [authorId], references: [id])
+  category Category     @relation(fields: [categoryId], references: [id])
+  tags     ArticleTag[]
+  user     User?        @relation(fields: [userId], references: [id])
+  userId   Int?
+
+  @@map("articles")
+}
+
+model ArticleTag {
+  articleId Int @map("article_id")
+  tagId     Int @map("tag_id")
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@map("article_tags")
+}
+
+model Advertisement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  type      AdType
+  imageUrl  String   @map("image_url")
+  linkUrl   String   @map("link_url")
+  position  String
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdBy Int      @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  creator User @relation(fields: [createdBy], references: [id])
+
+  @@map("advertisements")
+}
+
+model BreakingNews {
+  id        Int       @id @default(autoincrement())
+  headline  String
+  content   String?   @db.Text
+  priority  Int       @default(0) // higher number = higher priority
+  isActive  Boolean   @default(true) @map("is_active")
+  expiresAt DateTime? @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  // Foreign Keys
+  categoryId Int?    @map("category_id")
+
+  // Relations
+  category Category? @relation(fields: [categoryId], references: [id])
+
+  @@map("breaking_news")
+}
+
+model Newsletter {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  isActive     Boolean  @default(true) @map("is_active")
+  subscribedAt DateTime @default(now()) @map("subscribed_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("newsletters")
+}
