@@ -15,16 +15,10 @@ enum UserRole {
   ADMANAGER
 }
 
-enum ArticleStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
-}
-
-enum AdType {
-  BANNER
-  SIDEBAR
-  INLINE
+enum NewsOwnerType {
+  ADMIN
+  REPORTER
+  PENDING_REPORTER
 }
 
 model User {
@@ -38,188 +32,119 @@ model User {
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
-  // Relations
-  articles       Article[]
-  advertisements Advertisement[]
-
   @@map("users")
 }
 
 model Category {
   id          Int      @id @default(autoincrement())
   name        String
+  nameEnglish String?  @map("name_english")
   slug        String   @unique
   description String?
+  image       String?  @map("image")
   parentId    Int?     @map("parent_id")
-  color       String? // for UI theming
-  icon        String? // icon name or URL
   isActive    Boolean  @default(true) @map("is_active")
   sortOrder   Int      @default(0) @map("sort_order")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  // Statistics
-  articleCount Int @default(0) @map("article_count")
-  totalViews   Int @default(0) @map("total_views")
-
   // Relations
   parent       Category?      @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children     Category[]     @relation("CategoryHierarchy")
-  articles     Article[]
-  breakingNews BreakingNews[]
+  news         News[]
 
   @@map("categories")
 }
 
-model Author {
-  id           Int      @id @default(autoincrement())
-  name         String
-  slug         String   @unique
-  bio          String?  @db.Text
-  profileImage String?  @map("profile_image")
-  email        String   @unique
-  phone        String?
-  designation  String? // e.g., "राजकीय संपादक", "वरिष्ठ संपादक"
-  expertise    String? // e.g., "राजकारण, धोरण"
-  location     String? // e.g., "पुणे · मुंबई"
-  experience   Int? // years of experience
-  isActive     Boolean  @default(true) @map("is_active")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  // Social Media Links
-  twitter   String?
-  facebook  String?
-  linkedin  String?
-  instagram String?
-  youtube   String?
-
-  // Statistics
-  articleCount Int @default(0) @map("article_count")
-  totalViews   Int @default(0) @map("total_views")
-
-  // Relations
-  articles Article[]
-
-  @@map("authors")
-}
-
-model Tag {
-  id          Int      @id @default(autoincrement())
-  name        String
-  slug        String   @unique
-  description String?
-  color       String? // for UI theming
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Statistics
-  articleCount Int  @default(0) @map("article_count")
-  totalViews   Int  @default(0) @map("total_views")
-  trendingRank Int? @map("trending_rank")
-
-  // Relations
-  articles ArticleTag[]
-
-  @@map("tags")
-}
-
-model Article {
-  id            Int           @id @default(autoincrement())
-  title         String
-  slug          String        @unique
-  content       String        @db.Text
-  excerpt       String?
-  featuredImage String?       @map("featured_image")
-  status        ArticleStatus @default(DRAFT)
-  viewCount     Int           @default(0) @map("view_count")
-  trendingScore Int           @default(0) @map("trending_score")
-  readTime      Int?          @map("read_time") // in minutes
-  publishedAt   DateTime?     @map("published_at")
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
-
-  // SEO and Metadata
-  metaTitle       String? @map("meta_title")
-  metaDescription String? @map("meta_description")
-  keywords        String? // comma-separated keywords
-
-  // Social sharing
-  shareCount   Int @default(0) @map("share_count")
-  commentCount Int @default(0) @map("comment_count")
-
-  // Foreign Keys
-  authorId   Int    @map("author_id")
-  categoryId Int    @map("category_id")
-
-  // Relations
-  author   Author       @relation(fields: [authorId], references: [id])
-  category Category     @relation(fields: [categoryId], references: [id])
-  tags     ArticleTag[]
-  user     User?        @relation(fields: [userId], references: [id])
-  userId   Int?
-
-  @@map("articles")
-}
-
-model ArticleTag {
-  articleId Int @map("article_id")
-  tagId     Int @map("tag_id")
-
-  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([articleId, tagId])
-  @@map("article_tags")
-}
-
-model Advertisement {
+model MainAdvertisementBanner {
   id        Int      @id @default(autoincrement())
-  title     String
-  type      AdType
-  imageUrl  String   @map("image_url")
-  linkUrl   String   @map("link_url")
-  position  String
-  startDate DateTime @map("start_date")
-  endDate   DateTime @map("end_date")
-  isActive  Boolean  @default(true) @map("is_active")
-  createdBy Int      @map("created_by")
+  image     String   @map("image")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  creator User @relation(fields: [createdBy], references: [id])
-
-  @@map("advertisements")
+  @@map("main_advertisement_banners")
 }
 
-model BreakingNews {
-  id        Int       @id @default(autoincrement())
-  headline  String
-  content   String?   @db.Text
-  priority  Int       @default(0) // higher number = higher priority
-  isActive  Boolean   @default(true) @map("is_active")
-  expiresAt DateTime? @map("expires_at")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+model District {
+  id           Int           @id @default(autoincrement())
+  name         String
+  nameEnglish  String?       @map("name_english")
+  isActive     Boolean       @default(true) @map("is_active")
+  sortOrder    Int           @default(0) @map("sort_order")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  // Foreign Keys
-  categoryId Int?    @map("category_id")
+  subdivisions Subdivision[]
+  tehsils       Tehsil[]
+  news          News[]
 
-  // Relations
-  category Category? @relation(fields: [categoryId], references: [id])
-
-  @@map("breaking_news")
+  @@map("districts")
 }
 
-model Newsletter {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
-  isActive     Boolean  @default(true) @map("is_active")
-  subscribedAt DateTime @default(now()) @map("subscribed_at")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+model Subdivision {
+  id          Int      @id @default(autoincrement())
+  name        String
+  nameEnglish String?  @map("name_english")
+  districtId  Int?     @map("district_id")
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  @@map("newsletters")
+  district District? @relation(fields: [districtId], references: [id], onDelete: SetNull)
+  tehsils  Tehsil[]
+  news     News[]
+
+  @@map("subdivisions")
+}
+
+model Tehsil {
+  id            Int      @id @default(autoincrement())
+  name          String
+  nameEnglish   String?  @map("name_english")
+  districtId    Int?     @map("district_id")
+  subdivisionId Int?     @map("subdivision_id")
+  isActive      Boolean  @default(true) @map("is_active")
+  sortOrder     Int      @default(0) @map("sort_order")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  district    District?    @relation(fields: [districtId], references: [id], onDelete: SetNull)
+  subdivision Subdivision? @relation(fields: [subdivisionId], references: [id], onDelete: SetNull)
+  news        News[]
+
+  @@map("tehsils")
+}
+
+model News {
+  id               Int           @id @default(autoincrement())
+  newsType         String        @default("Image") @map("news_type")
+  ownerType        NewsOwnerType @default(ADMIN) @map("owner_type")
+  title            String
+  slug             String        @unique
+  summary          String?       @db.Text
+  description      String?       @db.Text
+  language         String        @default("Marathi")
+  featuredImage    String?       @map("featured_image")
+  galleryImage     String?       @map("gallery_image")
+  newsUrl          String?       @map("news_url")
+  tags             String?
+  sendNotification Boolean       @default(false) @map("send_notification")
+  publishedDate    DateTime?     @map("published_date")
+  isActive         Boolean       @default(true) @map("is_active")
+  viewCount        Int           @default(0) @map("view_count")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  categoryId    Int? @map("category_id")
+  districtId    Int? @map("district_id")
+  subdivisionId Int? @map("subdivision_id")
+  tehsilId      Int? @map("tehsil_id")
+
+  category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  district    District?    @relation(fields: [districtId], references: [id], onDelete: SetNull)
+  subdivision Subdivision? @relation(fields: [subdivisionId], references: [id], onDelete: SetNull)
+  tehsil      Tehsil?      @relation(fields: [tehsilId], references: [id], onDelete: SetNull)
+
+  @@map("news")
 }

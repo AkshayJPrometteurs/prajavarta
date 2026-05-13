@@ -1,24 +1,12 @@
 "use client";
 
-import { Popover, PopoverButton, PopoverPanel, Transition } from "@headlessui/react";
+import { Button, Popover, PopoverButton, PopoverPanel, Transition } from "@headlessui/react";
 import Logo from "@/components/Logo";
-import { HamburgerIcon, SearchIcon, UserIcon } from "@/components/ui/Icons";
+import { HamburgerIcon, SearchIcon } from "@/components/ui/Icons";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useReduxAuth } from "@/hooks/useReduxAuth";
-
-const NAV_ITEMS = [
-    { name: 'मुख्यपृष्ठ', link: '/' },
-    { name: 'महाराष्ट्र', link: '/category/महाराष्ट्र' },
-    { name: 'पुणे', link: '/category/पुणे' },
-    { name: 'राजकारण', link: '/category/राजकारण' },
-    { name: 'गुन्हेगारी', link: '/category/गुन्हेगारी' },
-    { name: 'मनोरंजन', link: '/category/मनोरंजन' },
-    { name: 'क्रीडा', link: '/category/क्रीडा' },
-    { name: 'व्यवसाय', link: '/category/व्यवसाय' },
-    { name: 'देश', link: '/category/देश' },
-    { name: 'जग', link: '/category/जग' },
-];
+import axiosInstance from "@/lib/axios";
 
 const MEGA_NEWS = [
     { c: 'महाराष्ट्र', h: 'राज्यात कांद्याच्या भावात मोठी घसरण, शेतकऱ्यांचे आंदोलन', color: '#c0392b' },
@@ -45,10 +33,26 @@ const COMPANY_LINKS = [
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [navItems, setNavItems] = useState([]);
     const { user, logout } = useReduxAuth();
 
     const toggleMenu = () => setIsMenuOpen((v) => !v);
     const toggleSearch = () => setIsSearchOpen((v) => !v);
+
+    const getNavItems = useCallback(async () => {
+        try {
+            const { data: { data } } = await axiosInstance.get('/admin/categories')
+            const formattedCategories = data.map((cat) => {
+                const link = cat.slug === "home-page" ? "/" : `/category/${cat.slug}`
+                return { name: cat.name, link: link }
+            })
+            setNavItems(formattedCategories)
+        } catch (error) {
+            console.error('Error fetching categories for header:', error)
+        }
+    }, [])
+
+    useEffect(() => { getNavItems() }, [getNavItems])
 
     return (
         <>
@@ -65,6 +69,42 @@ export default function Header() {
                     <button className="text-white flex items-center justify-center cursor-pointer" aria-label="Search" onClick={toggleSearch}>
                         <SearchIcon size={20} />
                     </button>
+
+                    {user ? (
+                        <Popover className="relative">
+                            <PopoverButton className="flex items-center justify-center w-9 h-9 bg-(--brand-accent) text-[#1a1a1a] rounded-full font-bold text-[13px] cursor-pointer hover:opacity-90 transition">
+                                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                            </PopoverButton>
+
+                            <Transition
+                                enter="transition duration-150 ease-out"
+                                enterFrom="opacity-0 -translate-y-1.5"
+                                enterTo="opacity-100 translate-y-0"
+                                leave="transition duration-100 ease-in"
+                                leaveFrom="opacity-100 translate-y-0"
+                                leaveTo="opacity-0 -translate-y-1.5"
+                            >
+                                <PopoverPanel className="absolute top-[calc(100%+8px)] right-0 w-56 bg-white text-[#1a1a1a] shadow-lg z-200 rounded-lg py-2 focus:outline-none">
+                                    <div className="px-4 py-2 border-b border-gray-100">
+                                        <p className="text-sm font-semibold text-gray-900">{user.name}</p>
+                                        <p className="text-xs text-gray-500">{user.email}</p>
+                                    </div>
+                                    <Button
+                                        onClick={logout}
+                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 transition hover:bg-red-600 cursor-pointer hover:text-white"
+                                    >
+                                        Sign out
+                                    </Button>
+                                </PopoverPanel>
+                            </Transition>
+                        </Popover>
+                    ) : (
+                        <Link href="/login">
+                            <button className="bg-(--brand-accent) text-[#1a1a1a] px-3.5 py-2 rounded font-bold text-[13px] cursor-pointer">
+                                Sign in
+                            </button>
+                        </Link>
+                    )}
                 </div>
             </header>
 
@@ -98,7 +138,7 @@ export default function Header() {
                     </div>
 
                     <div className="p-4 space-y-3">
-                        {NAV_ITEMS.map((item) => (
+                        {navItems.map((item) => (
                             <Link
                                 key={item.name}
                                 href={item.link || '#'}
@@ -136,7 +176,7 @@ export default function Header() {
                     </Link>
 
                     <nav className="mr flex gap-4 text-sm font-medium flex-1 overflow-visible">
-                        {NAV_ITEMS.map((item) => (
+                        {navItems.map((item) => (
                             <Link
                                 key={item.name}
                                 href={item.link || '#'}
@@ -232,7 +272,7 @@ export default function Header() {
                                 <PopoverButton className="flex items-center justify-center w-9 h-9 bg-(--brand-accent) text-[#1a1a1a] rounded-full font-bold text-[13px] cursor-pointer hover:opacity-90 transition">
                                     {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                                 </PopoverButton>
-                                
+
                                 <Transition
                                     enter="transition duration-150 ease-out"
                                     enterFrom="opacity-0 -translate-y-1.5"
@@ -246,12 +286,12 @@ export default function Header() {
                                             <p className="text-sm font-semibold text-gray-900">{user.name}</p>
                                             <p className="text-xs text-gray-500">{user.email}</p>
                                         </div>
-                                        <button
+                                        <Button
                                             onClick={logout}
-                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 transition hover:bg-red-600 cursor-pointer hover:text-white"
                                         >
                                             Sign out
-                                        </button>
+                                        </Button>
                                     </PopoverPanel>
                                 </Transition>
                             </Popover>

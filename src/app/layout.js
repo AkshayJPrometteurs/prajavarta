@@ -2,6 +2,7 @@ import { Noto_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ReduxProvider from "@/components/providers/ReduxProvider";
+import ToastProvider from "@/providers/ToastProvider";
 
 // ✅ Add Marathi font
 const notoSans = Noto_Sans({
@@ -19,11 +20,13 @@ export default function RootLayout({ children }) {
 	return (
 		<html lang="mr" className={`${notoSans.variable} h-full antialiased`}>
 			<body className="min-h-full flex flex-col bg-white text-slate-900">
-				<ReduxProvider>
-					<AuthProvider>
-						{children}
-					</AuthProvider>
-				</ReduxProvider>
+				<ToastProvider>
+					<ReduxProvider>
+						<AuthProvider>
+							{children}
+						</AuthProvider>
+					</ReduxProvider>
+				</ToastProvider>
 			</body>
 		</html>
 	);

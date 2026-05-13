@@ -1,68 +1,12 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState } from 'react'
-import { authService } from '@/services/auth'
+import { createContext, useContext } from 'react'
 
 const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  const checkAuth = async () => {
-    try {
-      const result = await authService.checkAuth()
-      if (result.success) {
-        setUser(result.user)
-      } else {
-        setUser(null)
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error)
-      setUser(null)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    void Promise.resolve().then(checkAuth)
-  }, [])
-
-  const login = async (email, password) => {
-    const result = await authService.login(email, password)
-    if (result.success) {
-      setUser(result.user)
-    }
-    return result
-  }
-
-  const register = async (name, email, password) => {
-    const result = await authService.register(name, email, password)
-    if (result.success) {
-      setUser(result.user)
-    }
-    return result
-  }
-
-  const logout = async () => {
-    await authService.logout()
-    setUser(null)
-  }
-
-  const value = {
-    user,
-    loading,
-    login,
-    register,
-    logout,
-    checkAuth,
-    isAuthenticated: authService.isAuthenticated(),
-    getToken: authService.getToken
-  }
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ }}>
       {children}
     </AuthContext.Provider>
   )

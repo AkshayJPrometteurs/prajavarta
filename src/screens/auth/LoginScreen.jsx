@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useReduxAuth } from '@/hooks/useReduxAuth'
 import Link from 'next/link'
 
 export default function LoginScreen() {
@@ -9,7 +9,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { login } = useReduxAuth()
 
   const handleSubmit = async (e) => {
     e.preventDefault()

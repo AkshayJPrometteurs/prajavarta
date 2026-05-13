@@ -1,14 +1,32 @@
 "use client"
 
-import { memo } from "react";
-import Ad from "@/components/Ad";
+import { memo, useEffect, useState } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import BreakingStripe from "@/components/BreakingStripe";
 import { useScreenSize } from "@/hooks/useScreenSize";
+import Ad from "@/components/Ad";
+import axiosInstance from "@/lib/axios";
 
 const MainLayout = ({ children, isBannerAdvertisement = false }) => {
 	const { screenWidth } = useScreenSize();
+	const [bannerImage, setBannerImage] = useState(null);
+	const getAdImage = async () => {
+		try {
+			const response = await axiosInstance.get(`/landing_page`);
+			if (response?.data?.success) {
+				setBannerImage(response?.data?.data?.image || null);
+			}
+		} catch (error) {
+			console.error("Error fetching ad image:", error);
+			return null;
+		}
+	}
+
+	useEffect(() => {
+		getAdImage()
+	}, [isBannerAdvertisement])
+
 	return (
 		<div className="min-h-screen flex flex-col bg-white text-slate-900 overflow-x-hidden">
 			<Header />
@@ -23,6 +41,7 @@ const MainLayout = ({ children, isBannerAdvertisement = false }) => {
 						height={250}
 						className="mx-auto"
 						fluid={screenWidth <= 992}
+						url={bannerImage}
 					/>
 				</div>
 			)}
