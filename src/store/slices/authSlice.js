@@ -78,11 +78,13 @@ export const checkAuthAdmin = createAsyncThunk(
 	async (_, { rejectWithValue }) => {
 		try {
 			const result = await axiosInstance.get('/admin/auth/profile')
+			console.log(result, "result")
 			if (result.status === 200) {
 				return result.data.user
 			}
 			return rejectWithValue('Not authenticated')
 		} catch (error) {
+			Cookies.remove(ADMIN_AUTH_COOKIE_NAME)
 			return rejectWithValue(error.response?.data?.error || 'Auth check failed')
 		}
 	}

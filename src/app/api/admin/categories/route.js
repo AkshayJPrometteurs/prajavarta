@@ -22,6 +22,7 @@ export async function GET(request) {
 
         // Build filter conditions
         const where = {
+            slug: { not: 'home-page' },
             ...(search && {
                 OR: [
                     { name: { contains: search } },

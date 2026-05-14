@@ -1,18 +1,28 @@
 "use client"
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup'
 import { Save, X } from 'lucide-react'
-import axios from 'axios'
 import { toast } from 'react-toastify'
 import AdminLayout from '@/layout/AdminLayout'
 import ImageSelector from '@/components/admin/ImageSelector'
 import Link from 'next/link'
-import { Button, Select } from '@headlessui/react'
+import axiosInstance from '@/lib/axios'
 
 const today = new Date().toISOString().slice(0, 10)
+
+function normalizeDateTime(value) {
+    if (!value) {
+        const d = new Date()
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
+        return d.toISOString().slice(0, 16)
+    }
+    const d = new Date(value)
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
+    return d.toISOString().slice(0, 16)
+}
 
 const initialValues = {
     newsType: 'Image',
@@ -26,9 +36,13 @@ const initialValues = {
     summary: '',
     description: '',
     featuredImage: '',
-    galleryImage: '',
+    galleryImages: [],
     newsUrl: '',
+    videoId: '',
+    videoUrl: '',
     publishedDate: today,
+    createdAt: normalizeDateTime(new Date()),
+    priority: 'Normal',
     tags: [],
     sendNotification: false,
     isActive: true
@@ -50,11 +64,9 @@ function normalizeDate(value) {
 export default function NewsFormScreen({ mode = 'add', newsId }) {
     const router = useRouter()
     const [categories, setCategories] = useState([])
-    const [locations, setLocations] = useState({
-        districts: [],
-        subdivisions: [],
-        tehsils: []
-    })
+    const [districts, setDistricts] = useState([])
+    const [subdivisions, setSubdivisions] = useState([])
+    const [tehsils, setTehsils] = useState([])
 
     const [loading, setLoading] = useState(mode === 'edit')
     const [saving, setSaving] = useState(false)
@@ -62,28 +74,34 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
 
     const [pendingFiles, setPendingFiles] = useState({
         featuredImage: null,
-        galleryImage: null
+        galleryImages: []
     })
 
     const [formValues, setFormValues] = useState(initialValues)
 
     const fetchOptions = async () => {
         try {
-            const [categoryResponse, locationResponse] = await Promise.all([
-                axios.get('/api/admin/categories?limit=1000'),
-                axios.get('/api/admin/locations')
+            const [categoryResponse, districtResponse, subdivisionResponse, tehsilResponse] = await Promise.all([
+                axiosInstance.get('/admin/categories', { params: { isActive: true, limit: 1000 } }),
+                axiosInstance.get('/admin/districts', { params: { isActive: true, limit: 1000 } }),
+                axiosInstance.get('/admin/subdivisions', { params: { isActive: true, limit: 1000 } }),
+                axiosInstance.get('/admin/tehsils', { params: { isActive: true, limit: 1000 } })
             ])
 
             if (categoryResponse.data.success) {
                 setCategories(categoryResponse.data.data || [])
             }
 
-            if (locationResponse.data.success) {
-                setLocations(locationResponse.data.data || {
-                    districts: [],
-                    subdivisions: [],
-                    tehsils: []
-                })
+            if (districtResponse.data.success) {
+                setDistricts(districtResponse.data.data || [])
+            }
+
+            if (subdivisionResponse.data.success) {
+                setSubdivisions(subdivisionResponse.data.data || [])
+            }
+
+            if (tehsilResponse.data.success) {
+                setTehsils(tehsilResponse.data.data || [])
             }
         } catch {
             toast.error('Failed to load form options')
@@ -94,7 +112,7 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
         if (mode !== 'edit' || !newsId) return
         try {
             setLoading(true)
-            const response = await axios.get(`/api/admin/news?id=${newsId}`)
+            const response = await axiosInstance.get(`/admin/news?id=${newsId}`)
             if (response.data.success) {
                 const item = response.data.data
                 setFormValues({
@@ -109,9 +127,15 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                     summary: item.summary || '',
                     description: item.description || '',
                     featuredImage: item.featuredImage || '',
-                    galleryImage: item.galleryImage || '',
+                    galleryImages: item.galleryImages ? item.galleryImages.map(img => img.imageUrl) : [],
                     newsUrl: item.newsUrl || '',
+                    videoId: item.videoId || '',
+                    videoUrl: item.videoUrl || '',
                     publishedDate: normalizeDate(item.publishedDate),
+                    createdAt: normalizeDateTime(item.createdAt),
+                    priority: item.isBreakingNews ? 'Breaking' :
+                        item.isTrendingNews ? 'Trending' :
+                            item.isMiniTrendingNews ? 'Mini_Trending' : 'Normal',
                     tags: item.tags ? item.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
                     sendNotification: item.sendNotification === true,
                     isActive: item.isActive !== false
@@ -136,14 +160,10 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                 const formData = new FormData()
                 formData.append('file', file)
                 formData.append('folder', 'news')
-                const response = await axios.post(
-                    '/api/admin/upload',
+                const response = await axiosInstance.post(
+                    '/admin/upload',
                     formData,
-                    {
-                        headers: {
-                            'Content-Type': 'multipart/form-data'
-                        }
-                    }
+                    { headers: { 'Content-Type': 'multipart/form-data' } }
                 )
                 if (response.data.success) {
                     paths.push(response.data.data.path)
@@ -163,15 +183,15 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
 
     return (
         <AdminLayout>
-            <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-                <div className="border-b border-slate-200 px-6 py-5">
-                    <h1 className="text-2xl font-bold text-slate-900">
+            <div className="rounded-xl border border-base-200 bg-base-100 shadow-sm">
+                <div className="border-b border-base-200 px-6 py-5">
+                    <h1 className="text-2xl font-bold text-base-content">
                         {mode === 'edit' ? 'Edit News' : 'Add News'}
                     </h1>
                 </div>
 
                 {loading ? (
-                    <div className="p-10 text-center">Loading...</div>
+                    <div className="p-10 text-center"><span className="loading loading-spinner loading-lg"></span></div>
                 ) : (
                     <Formik
                         enableReinitialize
@@ -182,22 +202,25 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                                 setSaving(true)
 
                                 let featuredImage = values.featuredImage
-                                let galleryImage = values.galleryImage
+                                let galleryImages = [...(values.galleryImages || [])]
 
                                 if (pendingFiles.featuredImage) {
                                     const uploaded = await uploadFiles([pendingFiles.featuredImage])
                                     if (uploaded.length) { featuredImage = uploaded[0] }
                                 }
 
-                                if (pendingFiles.galleryImage) {
-                                    const uploaded = await uploadFiles([pendingFiles.galleryImage])
-                                    if (uploaded.length) { galleryImage = uploaded[0] }
+                                if (pendingFiles.galleryImages && pendingFiles.galleryImages.length > 0) {
+                                    const uploaded = await uploadFiles(pendingFiles.galleryImages)
+                                    if (uploaded.length) {
+                                        galleryImages = [...galleryImages, ...uploaded]
+                                    }
                                 }
 
                                 const payload = {
                                     ...values,
                                     featuredImage,
-                                    galleryImage,
+                                    galleryImages,
+                                    createdAt: values.createdAt ? new Date(values.createdAt).toISOString() : null,
                                     tags: Array.isArray(values.tags) ? values.tags.join(',') : values.tags,
                                     categoryId: values.categoryId || null,
                                     districtId: values.districtId || null,
@@ -206,8 +229,8 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                                 }
 
                                 const response = mode === 'edit'
-                                    ? await axios.put('/api/admin/news', { ...payload, id: newsId })
-                                    : await axios.post('/api/admin/news', payload)
+                                    ? await axiosInstance.put('/admin/news', { ...payload, id: newsId })
+                                    : await axiosInstance.post('/admin/news', payload)
 
                                 if (response.data.success) {
                                     toast.success(
@@ -226,51 +249,69 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                         }}
                     >
                         {({ values, errors, touched, setFieldValue }) => {
-                            const filteredSubdivisions = useMemo(() => {
-                                if (!values.districtId) {
-                                    return locations.subdivisions
+                            // Fetch subdivisions when district changes
+                            useEffect(() => {
+                                if (values.districtId) {
+                                    axiosInstance.get(
+                                        `/admin/subdivisions`,
+                                        {
+                                            params: {
+                                                limit: 1000,
+                                                isActive: true,
+                                                districtId: values.districtId
+                                            }
+                                        }
+                                    ).then(res => {
+                                        if (res.data.success) setSubdivisions(res.data.data || [])
+                                    }).catch(() => toast.error('Failed to load subdivisions'))
+                                } else {
+                                    setSubdivisions([])
                                 }
-
-                                return locations.subdivisions.filter(
-                                    (item) =>
-                                        String(item.districtId || '') ===
-                                        String(values.districtId)
-                                )
                             }, [values.districtId])
 
-                            const filteredTehsils = useMemo(() => {
-                                return locations.tehsils.filter((item) => {
-                                    const districtMatches =
-                                        !values.districtId ||
-                                        String(item.districtId || '') ===
-                                        String(values.districtId)
-
-                                    const subdivisionMatches =
-                                        !values.subdivisionId ||
-                                        String(item.subdivisionId || '') ===
-                                        String(values.subdivisionId)
-
-                                    return districtMatches && subdivisionMatches
-                                })
-                            }, [values.districtId, values.subdivisionId])
+                            // Fetch tehsils when subdivision changes
+                            useEffect(() => {
+                                if (values.subdivisionId) {
+                                    axiosInstance.get(
+                                        `/admin/tehsils`,
+                                        {
+                                            params: {
+                                                limit: 1000,
+                                                isActive: true,
+                                                subdivisionId: values.subdivisionId
+                                            }
+                                        }
+                                    ).then(res => {
+                                        if (res.data.success) setTehsils(res.data.data || [])
+                                    }).catch(() => toast.error('Failed to load tehsils'))
+                                } else {
+                                    setTehsils([])
+                                }
+                            }, [values.subdivisionId])
 
                             return (
-                                <Form className="space-y-6 p-6">
+                                <Form className="space-y-4 p-6">
                                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                         <FormField label="News Type">
-                                            <Field as="select" name="newsType" className="admin-input">
+                                            <Field as="select" name="newsType" className="select select-bordered w-full">
                                                 <option value="Image">Image</option>
                                                 <option value="Video">Video</option>
                                             </Field>
                                         </FormField>
-                                        <FormField label="Language">
-                                            <Field name="language" className="admin-input" />
-                                        </FormField>
-                                    </div>
 
-                                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                                        <FormField label="Category">
-                                            <Field as="select" name="categoryId" className="admin-input">
+                                        <FormField label="Language">
+                                            <Field name="language" className="input input-bordered w-full" />
+                                        </FormField>
+
+                                        <FormField
+                                            label="Category"
+                                            error={errors.categoryId && touched.categoryId ? errors.categoryId : null}
+                                        >
+                                            <Field
+                                                as="select"
+                                                name="categoryId"
+                                                className={`select select-bordered w-full ${errors.categoryId && touched.categoryId ? 'select-error' : ''}`}
+                                            >
                                                 <option value="">Select</option>
                                                 {categories.map((category) => (
                                                     <option key={category.id} value={category.id}>
@@ -278,18 +319,16 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                                                     </option>
                                                 ))}
                                             </Field>
-                                            {errors.categoryId && touched.categoryId && (
-                                                <p className="mt-1 text-sm text-red-500">
-                                                    {errors.categoryId}
-                                                </p>
-                                            )}
                                         </FormField>
 
-                                        <FormField label="District">
+                                        <FormField
+                                            label="District"
+                                            error={errors.districtId && touched.districtId ? errors.districtId : null}
+                                        >
                                             <Field
                                                 as="select"
                                                 name="districtId"
-                                                className="admin-input"
+                                                className={`select select-bordered w-full ${errors.districtId && touched.districtId ? 'select-error' : ''}`}
                                                 onChange={(e) => {
                                                     setFieldValue('districtId', e.target.value)
                                                     setFieldValue('subdivisionId', '')
@@ -297,31 +336,27 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                                                 }}
                                             >
                                                 <option value="">Select</option>
-                                                {locations.districts.map((district) => (
+                                                {districts.map((district) => (
                                                     <option key={district.id} value={district.id}>
                                                         {district.name}
                                                     </option>
                                                 ))}
                                             </Field>
-                                            {errors.districtId && touched.districtId && (
-                                                <p className="mt-1 text-sm text-red-500">
-                                                    {errors.districtId}
-                                                </p>
-                                            )}
                                         </FormField>
 
                                         <FormField label="Subdivision">
                                             <Field
                                                 as="select"
                                                 name="subdivisionId"
-                                                className="admin-input"
+                                                disabled={!values.districtId}
+                                                className="select select-bordered w-full"
                                                 onChange={(e) => {
                                                     setFieldValue('subdivisionId', e.target.value)
                                                     setFieldValue('tehsilId', '')
                                                 }}
                                             >
                                                 <option value="">Select</option>
-                                                {filteredSubdivisions.map((subdivision) => (
+                                                {subdivisions.map((subdivision) => (
                                                     <option key={subdivision.id} value={subdivision.id}>
                                                         {subdivision.name}
                                                     </option>
@@ -330,9 +365,14 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                                         </FormField>
 
                                         <FormField label="Tehsil">
-                                            <Field as="select" name="tehsilId" className="admin-input">
+                                            <Field
+                                                as="select"
+                                                name="tehsilId"
+                                                disabled={!values.subdivisionId}
+                                                className="select select-bordered w-full"
+                                            >
                                                 <option value="">Select</option>
-                                                {filteredTehsils.map((tehsil) => (
+                                                {tehsils.map((tehsil) => (
                                                     <option key={tehsil.id} value={tehsil.id}>
                                                         {tehsil.name}
                                                     </option>
@@ -341,13 +381,33 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                                         </FormField>
                                     </div>
 
-                                    <FormField label="News Title">
-                                        <Field name="title" className="admin-input" />
-                                        {errors.title && touched.title && (
-                                            <p className="mt-1 text-sm text-red-500">
-                                                {errors.title}
-                                            </p>
-                                        )}
+                                    <FormField label="Priority">
+                                        <div className="flex flex-wrap items-center h-12 gap-4">
+                                            {['Normal', 'Breaking', 'Trending', 'Mini_Trending'].map(p => (
+                                                <label
+                                                    key={p}
+                                                    className="label cursor-pointer gap-2 p-0"
+                                                >
+                                                    <Field
+                                                        type="radio"
+                                                        name="priority"
+                                                        value={p}
+                                                        className="radio radio-primary radio-sm"
+                                                    />
+                                                    <span className="label-text">{p.replace('_', ' ')}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </FormField>
+
+                                    <FormField
+                                        label="News Title"
+                                        error={errors.title && touched.title ? errors.title : null}
+                                    >
+                                        <Field
+                                            name="title"
+                                            className={`input input-bordered w-full ${errors.title && touched.title ? 'input-error' : ''}`}
+                                        />
                                     </FormField>
 
                                     <FormField label="Summary">
@@ -355,25 +415,23 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                                             as="textarea"
                                             rows={5}
                                             name="summary"
-                                            className="admin-input"
+                                            className="textarea textarea-bordered w-full"
                                         />
                                     </FormField>
 
-                                    <FormField label="Description">
+                                    <FormField
+                                        label="Description"
+                                        error={errors.description && touched.description ? errors.description : null}
+                                    >
                                         <Field
                                             as="textarea"
                                             rows={8}
                                             name="description"
-                                            className="admin-input"
+                                            className={`textarea textarea-bordered w-full ${errors.description && touched.description ? 'textarea-error' : ''}`}
                                         />
-                                        {errors.description && touched.description && (
-                                            <p className="mt-1 text-sm text-red-500">
-                                                {errors.description}
-                                            </p>
-                                        )}
                                     </FormField>
 
-                                    <div className="grid gap-4 md:grid-cols-2">
+                                    <div className='space-y-4'>
                                         <FormField label="Featured Image">
                                             <ImageSelector
                                                 images={
@@ -399,88 +457,112 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                                             />
                                         </FormField>
 
-                                        <FormField label="Gallery Image">
+                                        <FormField label="Gallery Images">
                                             <ImageSelector
-                                                images={
-                                                    pendingFiles.galleryImage
-                                                        ? [URL.createObjectURL(pendingFiles.galleryImage)]
-                                                        : (values.galleryImage ? [values.galleryImage] : [])
-                                                }
+                                                images={[
+                                                    ...(values.galleryImages || []),
+                                                    ...(pendingFiles.galleryImages || []).map(f => URL.createObjectURL(f))
+                                                ]}
                                                 uploading={uploading}
-                                                type="featured"
+                                                type="gallery"
+                                                maxImages={10}
                                                 onUpload={(files) => {
                                                     setPendingFiles((prev) => ({
                                                         ...prev,
-                                                        galleryImage: files[0]
+                                                        galleryImages: [...prev.galleryImages, ...files]
                                                     }))
                                                 }}
-                                                onRemove={() => {
-                                                    setPendingFiles((prev) => ({
-                                                        ...prev,
-                                                        galleryImage: null
-                                                    }))
-                                                    setFieldValue('galleryImage', '')
+                                                onRemove={(index) => {
+                                                    const existingCount = values.galleryImages?.length || 0
+                                                    if (index < existingCount) {
+                                                        // Removing an already uploaded image
+                                                        const newValues = [...values.galleryImages]
+                                                        newValues.splice(index, 1)
+                                                        setFieldValue('galleryImages', newValues)
+                                                    } else {
+                                                        // Removing a pending image
+                                                        const pendingIndex = index - existingCount
+                                                        setPendingFiles((prev) => {
+                                                            const newPending = [...prev.galleryImages]
+                                                            newPending.splice(pendingIndex, 1)
+                                                            return { ...prev, galleryImages: newPending }
+                                                        })
+                                                    }
                                                 }}
                                             />
                                         </FormField>
                                     </div>
 
-                                    <div className="grid gap-4 md:grid-cols-2">
-                                        <FormField label="News URL">
-                                            <Field name="newsUrl" className="admin-input" />
-                                            {errors.newsUrl && touched.newsUrl && (
-                                                <p className="mt-1 text-sm text-red-500">
-                                                    {errors.newsUrl}
-                                                </p>
-                                            )}
+                                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                        <FormField label="News URL" error={errors.newsUrl && touched.newsUrl ? errors.newsUrl : null}>
+                                            <Field name="newsUrl" className={`input input-bordered w-full ${errors.newsUrl && touched.newsUrl ? 'input-error' : ''}`} />
                                         </FormField>
+
+                                        {values.newsType === 'Video' && (
+                                            <>
+                                                <FormField label="Video ID">
+                                                    <Field name="videoId" className="input input-bordered w-full" />
+                                                </FormField>
+                                                <FormField label="Video URL">
+                                                    <Field name="videoUrl" className="input input-bordered w-full" />
+                                                </FormField>
+                                            </>
+                                        )}
 
                                         <FormField label="Published Date">
                                             <Field
                                                 type="date"
                                                 name="publishedDate"
-                                                className="admin-input"
+                                                className="input input-bordered w-full"
+                                            />
+                                        </FormField>
+
+                                        <FormField label="Created At">
+                                            <Field
+                                                type="datetime-local"
+                                                name="createdAt"
+                                                className="input input-bordered w-full"
                                             />
                                         </FormField>
                                     </div>
 
                                     <FormField label="Tags">
-                                        <TagInput 
-                                            value={values.tags} 
+                                        <TagInput
+                                            value={values.tags}
                                             onChange={(tags) => setFieldValue('tags', tags)}
                                         />
                                     </FormField>
 
                                     <div className="flex flex-wrap gap-6">
-                                        <label className="flex items-center gap-2">
-                                            <Field type="checkbox" name="sendNotification" />
-                                            Send Notification
+                                        <label className="label cursor-pointer gap-2">
+                                            <Field type="checkbox" name="sendNotification" className="checkbox checkbox-primary" />
+                                            <span className="label-text">Send Notification</span>
                                         </label>
 
-                                        <label className="flex items-center gap-2">
-                                            <Field type="checkbox" name="isActive" />
-                                            Active
+                                        <label className="label cursor-pointer gap-2">
+                                            <Field type="checkbox" name="isActive" className="checkbox checkbox-primary" />
+                                            <span className="label-text">Active</span>
                                         </label>
                                     </div>
 
-                                    <div className="flex justify-end gap-4 border-t border-slate-200 pt-5">
+                                    <div className="flex justify-end gap-4 border-t border-base-200 pt-5">
                                         <Link href="/admin/news">
-                                            <Button
+                                            <button
                                                 type="button"
-                                                className="rounded-lg border border-slate-300 px-5 py-2 text-sm font-medium hover:bg-slate-50"
+                                                className="btn btn-ghost"
                                             >
                                                 Cancel
-                                            </Button>
+                                            </button>
                                         </Link>
 
-                                        <Button
+                                        <button
                                             type="submit"
                                             disabled={saving || uploading}
-                                            className="inline-flex items-center gap-2 rounded-lg bg-pink-600 px-6 py-2 text-sm font-semibold text-white hover:bg-pink-700 disabled:opacity-50"
+                                            className="btn btn-primary gap-2"
                                         >
                                             <Save size={16} />
                                             {saving ? 'Saving...' : 'Save News'}
-                                        </Button>
+                                        </button>
                                     </div>
                                 </Form>
                             )
@@ -488,19 +570,22 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                     </Formik>
                 )}
             </div>
-            <style jsx global>{` .admin-input { width: 100%; border-radius: 0.5rem; border: 1px solid rgb(203 213 225); padding: 0.75rem 1rem; font-size: 0.875rem; outline: none; transition: all 0.2s ease; } .admin-input:focus { border-color: rgb(219 39 119); box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.1); } `}</style>
         </AdminLayout>
     )
 }
 
-function FormField({ label, children }) {
+function FormField({ label, error, children }) {
     return (
-        <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
-                {label}
+        <div className="form-control w-full">
+            <label className="label">
+                <span className="label-text font-medium text-base-content/80">{label}</span>
             </label>
-
             {children}
+            {error && (
+                <label className="label pt-1 pb-0">
+                    <span className="label-text-alt text-error">{error}</span>
+                </label>
+            )}
         </div>
     )
 }
@@ -536,12 +621,12 @@ function TagInput({ value = [], onChange }) {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Type tag and press Enter or comma"
-                    className="admin-input flex-1"
+                    className="input input-bordered flex-1"
                 />
                 <button
                     type="button"
                     onClick={handleAddTag}
-                    className="rounded-lg bg-pink-600 px-4 py-2 text-sm font-medium text-white hover:bg-pink-700"
+                    className="btn btn-primary"
                 >
                     Add
                 </button>
@@ -552,15 +637,15 @@ function TagInput({ value = [], onChange }) {
                     {value.map((tag, index) => (
                         <div
                             key={index}
-                            className="inline-flex items-center gap-1 rounded-full bg-pink-100 px-3 py-1 text-sm text-pink-700"
+                            className="badge badge-primary gap-1 p-3"
                         >
                             {tag}
                             <button
                                 type="button"
                                 onClick={() => handleRemoveTag(index)}
-                                className="hover:text-pink-900"
+                                className="btn btn-ghost btn-xs btn-circle text-primary-content hover:bg-primary-content/20"
                             >
-                                <X size={14} />
+                                <X size={12} />
                             </button>
                         </div>
                     ))}

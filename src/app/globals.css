@@ -1,4 +1,36 @@
 @import "tailwindcss";
+@plugin "daisyui";
+
+/* DaisyUI admin theme overrides */
+[data-theme="light"] {
+    --color-primary: oklch(35% 0.10 254);       /* #1f4e78 brand navy */
+    --color-primary-content: #ffffff;
+    --color-error: oklch(55% 0.22 28);
+}
+
+/* Ensure modal backdrop is dark */
+dialog.modal::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Admin panel base */
+.admin-input {
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid oklch(87% 0.01 258);
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    outline: none;
+    transition: all 0.2s ease;
+    background: white;
+    color: #1a1a1a;
+}
+
+.admin-input:focus {
+    border-color: #1f4e78;
+    box-shadow: 0 0 0 3px rgba(31, 78, 120, 0.15);
+}
+
 
 :root {
 	--background: #ffffff;
@@ -133,7 +165,7 @@ body {
 	background: var(--background);
 }
 
-button{
+button {
 	cursor: pointer;
 }
 
@@ -155,13 +187,11 @@ button{
 }
 
 .adPlaceholder {
-	background: repeating-linear-gradient(
-		45deg,
-		#F1F2F4,
-		#F1F2F4 8px,
-		#E7E9EC 8px,
-		#E7E9EC 16px
-	);
+	background: repeating-linear-gradient(45deg,
+			#F1F2F4,
+			#F1F2F4 8px,
+			#E7E9EC 8px,
+			#E7E9EC 16px);
 	border: 1px dashed var(--border-strong);
 	display: flex;
 	flex-direction: column;
@@ -222,16 +252,14 @@ button{
 
 /* Image placeholder */
 .imgph {
-	background: linear-gradient(
-		135deg,
-		rgba(0, 0, 0, 0.04) 25%,
-		transparent 25%,
-		transparent 50%,
-		rgba(0, 0, 0, 0.04) 50%,
-		rgba(0, 0, 0, 0.04) 75%,
-		transparent 75%,
-		transparent
-	) 0 0 / 12px 12px, var(--brand-primary-light);
+	background: linear-gradient(135deg,
+			rgba(0, 0, 0, 0.04) 25%,
+			transparent 25%,
+			transparent 50%,
+			rgba(0, 0, 0, 0.04) 50%,
+			rgba(0, 0, 0, 0.04) 75%,
+			transparent 75%,
+			transparent) 0 0 / 12px 12px, var(--brand-primary-light);
 	display: flex;
 	align-items: center;
 	justify-content: center;

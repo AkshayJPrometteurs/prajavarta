@@ -1,7 +1,5 @@
 "use client"
 
-import { Fragment } from 'react'
-import { Menu, Transition } from '@headlessui/react'
 import { useReduxAuth } from '@/hooks/useReduxAuth'
 import { useSelector } from 'react-redux'
 import { Bell, LogOut, User, Settings } from 'lucide-react'
@@ -17,11 +15,7 @@ export default function AdminHeader() {
 
     const getInitials = (name) => {
         if (!name) return 'A'
-        return name
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .toUpperCase()
+        return name.split(' ').map((n) => n[0]).join('').toUpperCase()
     }
 
     const notifications = [
@@ -31,140 +25,73 @@ export default function AdminHeader() {
     ]
 
     return (
-        <header className="sticky top-0 z-20 border-b border-slate-200 bg-white shadow-sm">
+        <header className="sticky top-0 z-20 border-b border-base-200 bg-base-100 shadow-sm">
             <div className="flex items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-                {/* Left - Logo */}
                 <div className="flex items-center gap-2">
-                    <div className="text-xl font-bold text-slate-900">Prajavarta</div>
+                    <div className="text-xl font-bold text-base-content">Prajavarta</div>
                 </div>
 
-                {/* Right - Notifications & User Menu */}
                 <div className="flex items-center gap-4">
                     {/* Notifications Dropdown */}
-                    <Menu as="div" className="relative">
-                        <Menu.Button className="relative rounded-full p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                    <div className="dropdown dropdown-end">
+                        <div tabIndex={0} role="button" className="btn btn-ghost btn-circle relative">
                             <Bell size={20} />
-                            <span className="absolute right-1 top-1 flex h-2 w-2 items-center justify-center rounded-full bg-red-600"></span>
-                        </Menu.Button>
-
-                        <Transition
-                            as={Fragment}
-                            enter="transition ease-out duration-100"
-                            enterFrom="transform opacity-0 scale-95"
-                            enterTo="transform opacity-100 scale-100"
-                            leave="transition ease-in duration-75"
-                            leaveFrom="transform opacity-100 scale-100"
-                            leaveTo="transform opacity-0 scale-95"
-                        >
-                            <Menu.Items className="absolute right-0 mt-2 w-80 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-slate-200">
-                                <div className="p-0">
-                                    <div className="border-b border-slate-200 px-4 py-3">
-                                        <h3 className="font-semibold text-slate-900">Notifications</h3>
-                                    </div>
-                                    <div className="max-h-96 overflow-y-auto">
-                                        {notifications.length > 0 ? (
-                                            notifications.map((notification) => (
-                                                <Menu.Item key={notification.id}>
-                                                    {({ active }) => (
-                                                        <button
-                                                            className={`w-full border-b border-slate-100 px-4 py-3 text-left transition-colors ${active ? 'bg-slate-50' : ''
-                                                                } hover:bg-slate-50`}
-                                                        >
-                                                            <p className="text-sm font-medium text-slate-900">
-                                                                {notification.message}
-                                                            </p>
-                                                            <p className="mt-1 text-xs text-slate-500">{notification.time}</p>
-                                                        </button>
-                                                    )}
-                                                </Menu.Item>
-                                            ))
-                                        ) : (
-                                            <div className="px-4 py-8 text-center text-sm text-slate-500">
-                                                No notifications
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="border-t border-slate-200 px-4 py-2">
-                                        <button className="w-full py-2 text-center text-sm font-medium text-blue-600 hover:text-blue-700">
-                                            View all notifications
-                                        </button>
-                                    </div>
+                            <span className="badge badge-xs badge-error absolute right-1 top-1" />
+                        </div>
+                        <div tabIndex={0} className="dropdown-content card card-compact z-50 mt-2 w-80 shadow-lg bg-base-100 border border-base-200">
+                            <div className="card-body p-0">
+                                <div className="border-b border-base-200 px-4 py-3">
+                                    <h3 className="font-semibold text-base-content">Notifications</h3>
                                 </div>
-                            </Menu.Items>
-                        </Transition>
-                    </Menu>
+                                <div className="max-h-96 overflow-y-auto">
+                                    {notifications.map((n) => (
+                                        <button key={n.id} className="w-full border-b border-base-200 px-4 py-3 text-left transition-colors hover:bg-base-200">
+                                            <p className="text-sm font-medium text-base-content">{n.message}</p>
+                                            <p className="mt-1 text-xs text-base-content/60">{n.time}</p>
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="border-t border-base-200 px-4 py-2">
+                                    <button className="w-full py-2 text-center text-sm font-medium text-primary hover:text-primary/80">
+                                        View all notifications
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     {/* User Dropdown */}
-                    <Menu as="div" className="relative">
-                        <Menu.Button className="flex items-center gap-2 rounded-full hover:bg-slate-100 px-2 py-1 transition-colors">
+                    <div className="dropdown dropdown-end">
+                        <div tabIndex={0} role="button" className="btn btn-ghost flex items-center gap-2 rounded-full px-2 py-1">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white">
                                 {getInitials(user?.name)}
                             </div>
-                            <span className="hidden text-sm font-medium text-slate-700 sm:inline">
+                            <span className="hidden text-sm font-medium text-base-content sm:inline">
                                 {user?.name || 'Admin'}
                             </span>
-                        </Menu.Button>
-
-                        <Transition
-                            as={Fragment}
-                            enter="transition ease-out duration-100"
-                            enterFrom="transform opacity-0 scale-95"
-                            enterTo="transform opacity-100 scale-100"
-                            leave="transition ease-in duration-75"
-                            leaveFrom="transform opacity-100 scale-100"
-                            leaveTo="transform opacity-0 scale-95"
-                        >
-                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-slate-200">
-                                <div className="p-0">
-                                    {/* User Info */}
-                                    <div className="border-b border-slate-200 px-4 py-3">
-                                        <p className="text-sm font-semibold text-slate-900">{user?.name || 'Admin'}</p>
-                                        <p className="text-xs text-slate-500">{user?.email || 'admin@example.com'}</p>
-                                    </div>
-
-                                    {/* Menu Items */}
-                                    <Menu.Item>
-                                        {({ active }) => (
-                                            <button
-                                                onClick={() => { }}
-                                                className={`flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-sm transition-colors ${active ? 'bg-slate-50' : ''
-                                                    } hover:bg-slate-50`}
-                                            >
-                                                <User size={16} className="text-slate-600" />
-                                                <span className="text-slate-700">Profile</span>
-                                            </button>
-                                        )}
-                                    </Menu.Item>
-
-                                    <Menu.Item>
-                                        {({ active }) => (
-                                            <button
-                                                onClick={() => { }}
-                                                className={`flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-sm transition-colors ${active ? 'bg-slate-50' : ''
-                                                    } hover:bg-slate-50`}
-                                            >
-                                                <Settings size={16} className="text-slate-600" />
-                                                <span className="text-slate-700">Settings</span>
-                                            </button>
-                                        )}
-                                    </Menu.Item>
-
-                                    <Menu.Item>
-                                        {({ active }) => (
-                                            <button
-                                                onClick={handleLogout}
-                                                className={`flex w-full items-center gap-3 px-4 py-3 text-sm transition-colors ${active ? 'bg-red-50' : ''
-                                                    } hover:bg-red-50`}
-                                            >
-                                                <LogOut size={16} className="text-red-600" />
-                                                <span className="text-red-600 font-medium">Logout</span>
-                                            </button>
-                                        )}
-                                    </Menu.Item>
-                                </div>
-                            </Menu.Items>
-                        </Transition>
-                    </Menu>
+                        </div>
+                        <ul tabIndex={0} className="dropdown-content menu z-50 mt-2 w-56 rounded-box bg-base-100 shadow-lg border border-base-200 p-0">
+                            <li className="border-b border-base-200 px-4 py-3">
+                                <p className="text-sm font-semibold text-base-content pointer-events-none">{user?.name || 'Admin'}</p>
+                                <p className="text-xs text-base-content/60 pointer-events-none">{user?.email || 'admin@example.com'}</p>
+                            </li>
+                            <li>
+                                <button onClick={() => {}} className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-base-200">
+                                    <User size={16} /> Profile
+                                </button>
+                            </li>
+                            <li>
+                                <button onClick={() => {}} className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-base-200">
+                                    <Settings size={16} /> Settings
+                                </button>
+                            </li>
+                            <li>
+                                <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 text-sm text-error hover:bg-error/10">
+                                    <LogOut size={16} /> Logout
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </header>

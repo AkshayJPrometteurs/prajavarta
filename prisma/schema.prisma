@@ -1,12 +1,183 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mysql"
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  name         String
+  role         UserRole  @default(USER)
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLogin    DateTime? @map("last_login")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  news         News[]
+
+  @@map("users")
+}
+
+model Category {
+  id          Int        @id @default(autoincrement())
+  name        String
+  slug        String     @unique
+  description String?
+  image       String?    @map("image")
+  parentId    Int?       @map("parent_id")
+  isActive    Boolean    @default(true) @map("is_active")
+  sortOrder   Int        @default(0) @map("sort_order")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  nameEnglish String?    @map("name_english")
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  news        News[]
+
+  @@index([parentId], map: "categories_parent_id_fkey")
+  @@map("categories")
+}
+
+model MainAdvertisementBanner {
+  id        Int      @id @default(autoincrement())
+  image     String   @map("image")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("main_advertisement_banners")
+}
+
+model District {
+  id           Int           @id @default(autoincrement())
+  name         String
+  nameEnglish  String?       @map("name_english")
+  isActive     Boolean       @default(true) @map("is_active")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  locations    Location[]
+  news         News[]
+  subdivisions Subdivision[]
+  tehsils      Tehsil[]
+
+  @@map("districts")
+}
+
+model Subdivision {
+  id          Int        @id @default(autoincrement())
+  name        String
+  nameEnglish String?    @map("name_english")
+  districtId  Int?       @map("district_id")
+  isActive    Boolean    @default(true) @map("is_active")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  locations   Location[]
+  news        News[]
+  district    District?  @relation(fields: [districtId], references: [id])
+  tehsils     Tehsil[]
+
+  @@index([districtId], map: "subdivisions_district_id_fkey")
+  @@map("subdivisions")
+}
+
+model Tehsil {
+  id            Int          @id @default(autoincrement())
+  name          String
+  nameEnglish   String?      @map("name_english")
+  districtId    Int?         @map("district_id")
+  subdivisionId Int?         @map("subdivision_id")
+  isActive      Boolean      @default(true) @map("is_active")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  news          News[]
+  district      District?    @relation(fields: [districtId], references: [id])
+  subdivision   Subdivision? @relation(fields: [subdivisionId], references: [id])
+
+  @@index([districtId], map: "tehsils_district_id_fkey")
+  @@index([subdivisionId], map: "tehsils_subdivision_id_fkey")
+  @@map("tehsils")
+}
+
+model Location {
+  id            Int          @id @default(autoincrement())
+  name          String
+  nameEnglish   String?      @map("name_english")
+  districtId    Int?         @map("district_id")
+  subdivisionId Int?         @map("subdivision_id")
+  groupLink     String?      @map("group_link")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  district      District?    @relation(fields: [districtId], references: [id])
+  subdivision   Subdivision? @relation(fields: [subdivisionId], references: [id])
+  news          News[]
+
+  @@index([districtId], map: "locations_district_id_fkey")
+  @@index([subdivisionId], map: "locations_subdivision_id_fkey")
+  @@map("locations")
+}
+
+model News {
+  id        Int           @id @default(autoincrement())
+  newsType  String        @default("Image") @map("news_type")
+  userId    Int?          @map("user_id")
+  ownerType NewsOwnerType @default(ADMIN) @map("owner_type")
+
+  title       String?
+  slug        String  @unique
+  summary     String? @db.Text
+  description String? @db.Text
+
+  language String @default("Marathi")
+
+  featuredImage String? @map("featured_image")
+  galleryImage  String? @map("gallery_image")
+
+  newsUrl String? @map("news_url")
+  tags    String?
+
+  sendNotification Boolean @default(false) @map("send_notification")
+
+  publishedDate DateTime? @map("published_date")
+
+  isActive Boolean @default(true) @map("is_active")
+
+  viewCount Int @default(0) @map("view_count")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // MULTIPLE CATEGORY IDS
+  categoryIds String? @map("category_ids")
+
+  districtId    Int? @map("district_id")
+  subdivisionId Int? @map("subdivision_id")
+  tehsilId      Int? @map("tehsil_id")
+  locationId    Int? @map("location_id")
+
+  isBreakingNews     Boolean @default(false) @map("is_breaking_news")
+  isMiniTrendingNews Boolean @default(false) @map("is_mini_trending_news")
+  isTrendingNews     Boolean @default(false) @map("is_trending_news")
+
+  videoId  String? @map("video_id")
+  videoUrl String? @map("video_url")
+
+  user        User?        @relation(fields: [userId], references: [id])
+  district    District?    @relation(fields: [districtId], references: [id])
+  subdivision Subdivision? @relation(fields: [subdivisionId], references: [id])
+  tehsil      Tehsil?      @relation(fields: [tehsilId], references: [id])
+
+  galleryImages NewsGalleryImage[]
+  category      Category?          @relation(fields: [categoryId], references: [id])
+  categoryId    Int?
+  location      Location?          @relation(fields: [locationId], references: [id])
+
+  @@index([userId], map: "news_user_id_fkey")
+  @@index([districtId], map: "news_district_id_fkey")
+  @@index([subdivisionId], map: "news_subdivision_id_fkey")
+  @@index([tehsilId], map: "news_tehsil_id_fkey")
+  @@map("news")
 }
 
 enum UserRole {
@@ -21,145 +192,14 @@ enum NewsOwnerType {
   PENDING_REPORTER
 }
 
-model User {
-  id           Int       @id @default(autoincrement())
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  name         String
-  role         UserRole  @default(USER)
-  isActive     Boolean   @default(true) @map("is_active")
-  lastLogin    DateTime? @map("last_login")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-
-  @@map("users")
-}
-
-model Category {
-  id          Int      @id @default(autoincrement())
-  name        String
-  nameEnglish String?  @map("name_english")
-  slug        String   @unique
-  description String?
-  image       String?  @map("image")
-  parentId    Int?     @map("parent_id")
-  isActive    Boolean  @default(true) @map("is_active")
-  sortOrder   Int      @default(0) @map("sort_order")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  parent       Category?      @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children     Category[]     @relation("CategoryHierarchy")
-  news         News[]
-
-  @@map("categories")
-}
-
-model MainAdvertisementBanner {
+model NewsGalleryImage {
   id        Int      @id @default(autoincrement())
-  image     String   @map("image")
+  newsId    Int      @map("news_id")
+  imageUrl  String   @map("image_url")
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  news      News     @relation(fields: [newsId], references: [id], onDelete: Cascade)
 
-  @@map("main_advertisement_banners")
-}
-
-model District {
-  id          Int           @id @default(autoincrement())
-  name        String
-  nameEnglish String?       @map("name_english")
-  isActive    Boolean       @default(true) @map("is_active")
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-
-  subdivisions Subdivision[]
-  tehsils      Tehsil[]
-  locations    Location[]
-  news         News[]
-
-  @@map("districts")
-}
-
-model Subdivision {
-  id          Int      @id @default(autoincrement())
-  name        String
-  nameEnglish String?  @map("name_english")
-  districtId  Int?     @map("district_id")
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  district  District?  @relation(fields: [districtId], references: [id], onDelete: SetNull)
-  tehsils   Tehsil[]
-  locations Location[]
-  news      News[]
-
-  @@map("subdivisions")
-}
-
-model Tehsil {
-  id            Int      @id @default(autoincrement())
-  name          String
-  nameEnglish   String?  @map("name_english")
-  districtId    Int?     @map("district_id")
-  subdivisionId Int?     @map("subdivision_id")
-  isActive      Boolean  @default(true) @map("is_active")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  district    District?    @relation(fields: [districtId], references: [id], onDelete: SetNull)
-  subdivision Subdivision? @relation(fields: [subdivisionId], references: [id], onDelete: SetNull)
-  news        News[]
-
-  @@map("tehsils")
-}
-
-model Location {
-  id            Int      @id @default(autoincrement())
-  name          String
-  nameEnglish   String?  @map("name_english")
-  districtId    Int?     @map("district_id")
-  subdivisionId Int?     @map("subdivision_id")
-  groupLink     String?  @map("group_link")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  district    District?    @relation(fields: [districtId], references: [id], onDelete: SetNull)
-  subdivision Subdivision? @relation(fields: [subdivisionId], references: [id], onDelete: SetNull)
-
-  @@map("locations")
-}
-
-model News {
-  id               Int           @id @default(autoincrement())
-  newsType         String        @default("Image") @map("news_type")
-  ownerType        NewsOwnerType @default(ADMIN) @map("owner_type")
-  title            String
-  slug             String        @unique
-  summary          String?       @db.Text
-  description      String?       @db.Text
-  language         String        @default("Marathi")
-  featuredImage    String?       @map("featured_image")
-  galleryImage     String?       @map("gallery_image")
-  newsUrl          String?       @map("news_url")
-  tags             String?
-  sendNotification Boolean       @default(false) @map("send_notification")
-  publishedDate    DateTime?     @map("published_date")
-  isActive         Boolean       @default(true) @map("is_active")
-  viewCount        Int           @default(0) @map("view_count")
-  createdAt        DateTime      @default(now()) @map("created_at")
-  updatedAt        DateTime      @updatedAt @map("updated_at")
-
-  categoryId    Int? @map("category_id")
-  districtId    Int? @map("district_id")
-  subdivisionId Int? @map("subdivision_id")
-  tehsilId      Int? @map("tehsil_id")
-
-  category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  district    District?    @relation(fields: [districtId], references: [id], onDelete: SetNull)
-  subdivision Subdivision? @relation(fields: [subdivisionId], references: [id], onDelete: SetNull)
-  tehsil      Tehsil?      @relation(fields: [tehsilId], references: [id], onDelete: SetNull)
-
-  @@map("news")
+  @@index([newsId], map: "news_gallery_images_news_id_fkey")
+  @@map("news_gallery_images")
 }

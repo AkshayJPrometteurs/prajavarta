@@ -10,7 +10,7 @@ const menuItems = [
 	{ label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
 	{ label: 'Categories', href: '/admin/categories', icon: FolderOpen },
 	{ label: 'Manage News', href: '/admin/news', icon: Newspaper },
-	{ label: 'MainAdvertisementBanner', href: '/admin/main-advertisement-banner', icon: Image },
+	{ label: 'Advertisement Banner', href: '/admin/main-advertisement-banner', icon: Image },
 	{ label: 'Districts', href: '/admin/districts', icon: MapPin },
 	{ label: 'Subdivisions', href: '/admin/subdivisions', icon: MapPin },
 	{ label: 'Tehsils', href: '/admin/tehsils', icon: MapPin },
