@@ -41,7 +41,7 @@ export default function Header() {
 
     const getNavItems = useCallback(async () => {
         try {
-            const { data: { data } } = await axiosInstance.get('/admin/categories')
+            const { data: { data } } = await axiosInstance.get('/categories')
             const formattedCategories = data.map((cat) => {
                 const link = cat.slug === "home-page" ? "/" : `/category/${cat.slug}`
                 return { name: cat.name, link: link }

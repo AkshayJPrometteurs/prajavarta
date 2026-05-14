@@ -6,15 +6,15 @@ export async function GET() {
         const [districts, subdivisions, tehsils] = await Promise.all([
             prisma.district.findMany({
                 where: { isActive: true },
-                orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
+                orderBy: { name: 'asc' }
             }),
             prisma.subdivision.findMany({
                 where: { isActive: true },
-                orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
+                orderBy: { name: 'asc' }
             }),
             prisma.tehsil.findMany({
                 where: { isActive: true },
-                orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }]
+                orderBy: { name: 'asc' }
             })
         ])
 

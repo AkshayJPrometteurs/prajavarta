@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useReduxAuth } from '@/hooks/useReduxAuth'
-import { LayoutDashboard, FolderOpen, Image, LogOut, Menu, Newspaper, X } from 'lucide-react'
+import { LayoutDashboard, FolderOpen, Image, LogOut, Menu, Newspaper, X, MapPin } from 'lucide-react'
 import { useState } from 'react'
 
 const menuItems = [
@@ -11,6 +11,10 @@ const menuItems = [
 	{ label: 'Categories', href: '/admin/categories', icon: FolderOpen },
 	{ label: 'Manage News', href: '/admin/news', icon: Newspaper },
 	{ label: 'MainAdvertisementBanner', href: '/admin/main-advertisement-banner', icon: Image },
+	{ label: 'Districts', href: '/admin/districts', icon: MapPin },
+	{ label: 'Subdivisions', href: '/admin/subdivisions', icon: MapPin },
+	{ label: 'Tehsils', href: '/admin/tehsils', icon: MapPin },
+	{ label: 'Locations', href: '/admin/location-list', icon: MapPin },
 ]
 
 export default function AdminSidebar() {
@@ -59,8 +63,8 @@ export default function AdminSidebar() {
 								href={item.href}
 								onClick={() => setIsOpen(false)}
 								className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${isActive
-										? 'bg-slate-700 text-white'
-										: 'text-slate-400 hover:bg-slate-800 hover:text-slate-50'
+									? 'bg-slate-700 text-white'
+									: 'text-slate-400 hover:bg-slate-800 hover:text-slate-50'
 									}`}
 							>
 								<Icon size={18} />
