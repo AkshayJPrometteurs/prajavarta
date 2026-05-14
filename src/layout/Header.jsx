@@ -3,9 +3,9 @@
 import Logo from "@/components/Logo";
 import { HamburgerIcon, SearchIcon } from "@/components/ui/Icons";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useReduxAuth } from "@/hooks/useReduxAuth";
-import axiosInstance from "@/lib/axios";
+import { useAuth } from "@/contexts/AuthContext";
 
 const MEGA_NEWS = [
     { c: 'महाराष्ट्र', h: 'राज्यात कांद्याच्या भावात मोठी घसरण, शेतकऱ्यांचे आंदोलन', color: '#c0392b' },
@@ -32,26 +32,12 @@ const COMPANY_LINKS = [
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
-    const [navItems, setNavItems] = useState([]);
     const { user, logout } = useReduxAuth();
+    const { categories } = useAuth();
+    const navItems = categories;
 
     const toggleMenu = () => setIsMenuOpen((v) => !v);
     const toggleSearch = () => setIsSearchOpen((v) => !v);
-
-    const getNavItems = useCallback(async () => {
-        try {
-            const { data: { data } } = await axiosInstance.get('/categories')
-            const formattedCategories = data.map((cat) => {
-                const link = cat.slug === "home-page" ? "/" : `/category/${cat.slug}`
-                return { name: cat.name, link: link }
-            })
-            setNavItems(formattedCategories)
-        } catch (error) {
-            console.error('Error fetching categories for header:', error)
-        }
-    }, [])
-
-    useEffect(() => { getNavItems() }, [getNavItems])
 
     return (
         <>

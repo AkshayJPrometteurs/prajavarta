@@ -43,7 +43,6 @@ export default function CompactListItem({ n, headline, category }) {
                 <p
                     className="mr"
                     style={{
-                        margin: '4px 0 0',
                         fontSize: 14,
                         lineHeight: 1.4,
                         fontWeight: 600,

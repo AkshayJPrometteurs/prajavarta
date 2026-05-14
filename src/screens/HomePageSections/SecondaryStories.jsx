@@ -3,20 +3,28 @@
 import { memo } from "react";
 import StandardCard from "../../components/cards/StandardCard";
 
-const SecondaryStories = () => {
+const SecondaryStories = ({ data }) => {
 	return (
 		<div>
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<StandardCard
-					category="राजकारण"
-					headline="मुख्यमंत्र्यांच्या शपथविधीसाठी मुंबईत वानखेडेवर कार्यक्रम होणार"
-					layout="col"
-				/>
-				<StandardCard
-					category="पुणे"
-					headline="पुणे महानगरपालिकेच्या अर्थसंकल्पात पाणीपुरवठा योजनेला प्राधान्य"
-					layout="col"
-				/>
+				{data?.map((content) => {
+					return (
+						<div key={content?.id}>
+							<StandardCard
+								category={
+									content?.categoryIds
+										? String(content?.categoryIds)
+											.split(',')
+											.map(id => id.trim())
+										: []
+								}
+								headline={content?.title}
+								layout="col"
+								imageUrl={content?.featuredImage}
+							/>
+						</div>
+					)
+				})}
 			</div>
 			<div className="mt-4 md:hidden">
 				<StandardCard

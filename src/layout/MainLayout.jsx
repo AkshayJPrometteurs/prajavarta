@@ -15,7 +15,7 @@ const MainLayout = ({ children, isBannerAdvertisement = false }) => {
 		try {
 			const response = await axiosInstance.get(`/landing_page`);
 			if (response?.data?.success) {
-				setBannerImage(response?.data?.data?.image || null);
+				setBannerImage(response?.data?.data?.banner?.image || null);
 			}
 		} catch (error) {
 			console.error("Error fetching ad image:", error);

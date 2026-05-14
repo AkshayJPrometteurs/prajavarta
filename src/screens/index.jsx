@@ -1,5 +1,5 @@
 "use client"
-import { memo } from "react"
+import { memo, useEffect, useState } from "react"
 import Ad from "../components/Ad"
 import SecondaryStories from "./HomePageSections/SecondaryStories"
 import TrendingModule from "./HomePageSections/TrendingModule"
@@ -10,86 +10,76 @@ import MainLayout from "@/layout/MainLayout"
 import MainPageSidebar from "./Sidebars/MainPageSidebar"
 import SectionLayout from "@/layout/SectionLayout"
 import HeroCard from "@/components/cards/HeroCard"
-
-const TRENDING_ITEMS = [
-    { c: 'राजकारण', h: 'अजित पवार गटाची आज महत्त्वाची बैठक, मंत्रिपदाच्या मुद्द्यावर चर्चा' },
-    { c: 'क्रीडा', h: 'रोहित शर्मा कसोटी संघातून निवृत्त; मुंबईकरांचा भावूक निरोप' },
-    { c: 'व्यवसाय', h: 'रिलायन्सच्या तिमाही नफ्यात १८% वाढ, शेअर बाजार उसळला' },
-    { c: 'मनोरंजन', h: 'रितेश देशमुखचा \'राजा शिवछत्रपती\' चित्रपट दिवाळीला प्रदर्शित' },
-    { c: 'महाराष्ट्र', h: 'मराठवाड्यात अवकाळी पावसाचा कहर, १२ जिल्ह्यांत पीकहानी' },
-]
-
-const CATEGORY_SECTIONS = [
-    {
-        cat: 'महाराष्ट्र',
-        hero: 'राज्यात कांद्याच्या भावात मोठी घसरण, शेतकऱ्यांचे आंदोलन सुरू',
-        stories: [
-            'नागपूर हिवाळी अधिवेशनाची तारीख निश्चित, १६ डिसेंबरपासून सुरुवात',
-            'औरंगाबाद नामांतराचा वाद पुन्हा चर्चेत, सुप्रीम कोर्टात सुनावणी',
-            'नाशिकमध्ये द्राक्ष निर्यातीत २०% घट, युरोपीय निर्बंधांचा परिणाम',
-        ],
-    },
-    {
-        cat: 'पुणे',
-        hero: 'पुण्यात मेट्रोच्या तिसऱ्या टप्प्याचे काम सुरू, २०२८ पर्यंत पूर्णत्वाचे लक्ष्य',
-        stories: [
-            'हिंजवडी आयटी हब विस्ताराला राज्य सरकारची मंजुरी',
-            'पीएमपीच्या ३०० नवीन ई-बस ताफ्यात येणार, सप्टेंबरपर्यंत सेवा',
-            'कोरेगाव पार्क परिसरात रस्ते दुरुस्तीचे काम पूर्ण',
-        ],
-    },
-    {
-        cat: 'राजकारण',
-        hero: 'विरोधी पक्षनेतेपदावरून ठाकरे आणि काँग्रेसमध्ये रस्सीखेच, चर्चा गुप्त',
-        stories: [
-            'लोकसभेत अध्यक्षपदासाठी इंडिया आघाडीची रणनीती ठरली',
-            'एनसीपी शरद पवार गटाच्या प्रदेशाध्यक्षपदी सुनील तटकरे',
-            'भाजप प्रदेशाध्यक्षपदी फडणवीसांची फेरनियुक्ती निश्चित',
-        ],
-    },
-    {
-        cat: 'गुन्हेगारी',
-        hero: 'कुख्यात तस्कर ललित पाटीलला मुंबई पोलिसांनी अटक केली',
-        stories: [
-            'ठाण्यात सायबर फसवणुकीची ४.२ कोटींची तक्रार दाखल',
-            'नाशिकमध्ये अंमली पदार्थ तस्करीचा भांडाफोड, ५ अटक',
-            'मुंबईत खंडणी प्रकरणी निवृत्त पोलीस अधिकाऱ्यावर गुन्हा',
-        ],
-    },
-    {
-        cat: 'क्रीडा',
-        hero: 'मुंबई इंडियन्सच्या नव्या प्रशिक्षकपदी महेंद्रसिंग धोनीच्या नावाची चर्चा',
-        stories: [
-            'विश्वचषक हॉकी स्पर्धेसाठी भारतीय संघाची घोषणा',
-            'पीव्ही सिंधू ऑस्ट्रेलियन ओपनच्या उपांत्य फेरीत दाखल',
-            'रणजी ट्रॉफीत मुंबईचा सलग दुसरा विजय',
-        ],
-    },
-    {
-        cat: 'व्यवसाय',
-        hero: 'सेन्सेक्सने ऐतिहासिक ८०,००० चा टप्पा ओलांडला, बाजारात तेजी',
-        stories: [
-            'रिलायन्सच्या तिमाही नफ्यात १८% वाढ',
-            'GST संकलनात फेब्रुवारीत १२% वाढ',
-            'Infosys ने ३,५०० नव्या भरतीची घोषणा केली',
-        ],
-    },
-]
+import axiosInstance from "@/lib/axios"
+import StandardCard from "@/components/cards/StandardCard"
+import { get } from "node:http"
+import { getCategoryNames } from "@/lib/helper"
 
 const MainPage = () => {
     const { screenWidth } = useScreenSize();
+    const [pageData, setPageData] = useState(null);
+    const [categoriesWiseData, setCategoriesWiseData] = useState([])
+    const [recommendedData, setRecommendedData] = useState([])
+    const getMainPage = async () => {
+        try {
+            const response = await axiosInstance.get(`/landing_page`);
+            if (response?.data?.success) {
+                setPageData(response?.data?.data || null);
+                const categoriesData = response?.data?.data?.categories_wise_data || {}
+                const formattedCategoriesData = Object.entries(categoriesData).map(([catName, newsItems]) => ({
+                    cat: catName,
+                    hero: newsItems[0] || {},
+                    stories: newsItems.slice(1, 4).map((item) => ({
+                        title: item.title || '',
+                        featuredImage: item.featuredImage || '',
+                        slug: item.slug || '',
+                        createdAt: item.createdAt || '',
+                    }))
+                }))
+                setCategoriesWiseData(formattedCategoriesData)
+
+                const recommendedSection = response?.data?.data?.recommended_news || []
+                setRecommendedData(recommendedSection)
+            }
+        } catch (error) {
+            console.error("Error fetching landing page:", error);
+            return null;
+        }
+    }
+
+    useEffect(() => { getMainPage() }, [])
+
     return (
         <MainLayout isBannerAdvertisement>
             <section>
-                <SectionLayout sidebar={<MainPageSidebar />}>
+                <SectionLayout sidebar={<MainPageSidebar data={pageData} />}>
                     {/* Hero story */}
                     <HeroCard
-                        category="महाराष्ट्र"
-                        headline="विधानसभेत सत्तासंघर्ष: सरकार स्थापनेच्या हालचालींना वेग, दिल्लीत रात्री बैठक"
-                        subtitle="राज्यपाल भेट उद्या सकाळी; नवीन मंत्रिमंडळाची संभाव्य रचना समोर"
-                        redirectUrl="/article/maharashtra"
+                        category={getCategoryNames(pageData?.one_latest_news?.[0]?.categoryIds) || []}
+                        headline={pageData?.one_latest_news[0]?.title}
+                        subtitle={pageData?.one_latest_news[0]?.summary}
+                        redirectUrl={`/article/${pageData?.one_latest_news?.[0]?.slug}`}
+                        advertisementImage={pageData?.one_latest_news[0]?.featuredImage}
+                        data={pageData?.one_latest_news[0]}
                     />
-                    <SecondaryStories />
+
+                    {/* <SecondaryStories data={pageData?.latest_news?.slice(1, 4)} /> */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {pageData?.latest_news?.map((content, index) => {
+                            const isLast = index === pageData.latest_news.length - 1
+                            return (
+                                <div key={content?.id} className={isLast ? 'block md:hidden' : ''}>
+                                    <StandardCard
+                                        category={getCategoryNames(content?.categoryIds) || ""}
+                                        headline={content?.title}
+                                        layout="col"
+                                        imageUrl={content?.featuredImage}
+                                        data={content}
+                                    />
+                                </div>
+                            )
+                        })}
+                    </div>
 
                     {screenWidth < 992 && (
                         <div className="flex justify-center">
@@ -104,7 +94,7 @@ const MainPage = () => {
                         </div>
                     )}
 
-                    <TrendingModule items={TRENDING_ITEMS} isBgColor />
+                    <TrendingModule items={pageData?.trending_news} isBgColor />
 
                     <div className="flex justify-center">
                         <Ad
@@ -117,7 +107,7 @@ const MainPage = () => {
                         />
                     </div>
 
-                    {CATEGORY_SECTIONS.map((sec) => (
+                    {categoriesWiseData?.map((sec) => (
                         <CategorySection
                             key={sec.cat}
                             cat={sec.cat}
@@ -126,7 +116,7 @@ const MainPage = () => {
                         />
                     ))}
 
-                    <RecommendedGrid />
+                    <RecommendedGrid items={recommendedData} />
 
                     {screenWidth < 992 && (
                         <Ad
