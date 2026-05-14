@@ -311,8 +311,31 @@ export default function NewsListingScreen() {
                                         <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-black/40"></div>
 
                                         {/* Top Left: Category */}
-                                        <div className="absolute left-3 top-3 max-w-[70%] truncate text-sm font-semibold text-white drop-shadow-md">
-                                            {item.category?.name || item.category?.nameEnglish || 'Uncategorized'}
+                                        <div className="absolute left-3 top-3 flex flex-wrap gap-2 max-w-[80%]">
+                                            {item.categoryIds ? (
+                                                item.categoryIds
+                                                    .split(',')
+                                                    .map((id) => {
+                                                        const category = state.categories.find(
+                                                            (cat) => cat.id === Number(id.trim())
+                                                        )
+
+                                                        if (!category) return null
+
+                                                        return (
+                                                            <span
+                                                                key={id}
+                                                                className="badge badge-primary badge-sm text-white"
+                                                            >
+                                                                {category.name}
+                                                            </span>
+                                                        )
+                                                    })
+                                            ) : (
+                                                <span className="badge badge-neutral badge-sm">
+                                                    Uncategorized
+                                                </span>
+                                            )}
                                         </div>
 
                                         {/* Top Right: Checkbox */}
@@ -448,13 +471,19 @@ export default function NewsListingScreen() {
                             {state.previewNews.summary && (
                                 <div>
                                     <h3 className="text-sm font-semibold">Summary</h3>
-                                    <p className="mt-1 whitespace-pre-line text-sm text-base-content/70">{state.previewNews.summary}</p>
+                                    <div
+                                        className="mt-1 whitespace-pre-line text-sm text-base-content/70"
+                                        dangerouslySetInnerHTML={{ __html: state.previewNews.summary }}
+                                    />
                                 </div>
                             )}
                             {state.previewNews.description && (
                                 <div>
                                     <h3 className="text-sm font-semibold">Description</h3>
-                                    <p className="mt-1 whitespace-pre-line text-sm text-base-content/70">{state.previewNews.description}</p>
+                                    <div
+                                        className="mt-1 whitespace-pre-line text-sm text-base-content/70"
+                                        dangerouslySetInnerHTML={{ __html: state.previewNews.description }}
+                                    />
                                 </div>
                             )}
                             <div className="grid gap-3 text-sm text-base-content/70 sm:grid-cols-2">

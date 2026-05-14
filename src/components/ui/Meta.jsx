@@ -2,8 +2,9 @@
 
 import { memo } from 'react'
 import { ClockIcon } from './Icons'
+import { formatMarathiDate, timeAgo } from '@/lib/helper'
 
-const Meta = ({ author, minutes = 3, compact }) => {
+const Meta = ({ author, compact, data = null }) => {
     return (
         <div className={`flex items-center flex-wrap gap-2 text-[11px] text-gray-600 ${compact ? 'mt-1.5' : 'mt-2.5'}`}>
             {author && (
@@ -16,13 +17,13 @@ const Meta = ({ author, minutes = 3, compact }) => {
 
             <span className="inline-flex items-center gap-1 whitespace-nowrap">
                 <ClockIcon />
-                <span className="mr">{minutes} मिनिटे</span>
+                <span className="mr">{timeAgo(data?.createdAt)}</span>
             </span>
 
             <span>·</span>
 
             <span className="mr whitespace-nowrap">
-                २९ एप्रिल
+                {formatMarathiDate(data?.createdAt)}
             </span>
         </div>
     )

@@ -1,3 +1,5 @@
+import { useAuth } from "@/contexts/AuthContext";
+
 const EN_TO_MR = {
     home: "मुख्यपृष्ठ",
     maharashtra: "महाराष्ट्र",
@@ -51,3 +53,139 @@ export const getShortName = (fullName) => {
 
     return firstName + lastName;
 };
+
+// utils/timeAgo.js
+
+export function timeAgo(timestamp) {
+    if (!timestamp) return ''
+
+    const now = new Date()
+    const past = new Date(timestamp)
+
+    const seconds = Math.floor((now - past) / 1000)
+
+    if (seconds < 60) {
+        return `${seconds} सेकंदांपूर्वी`
+    }
+
+    const minutes = Math.floor(seconds / 60)
+
+    if (minutes < 60) {
+        return `${minutes} मिनिटांपूर्वी`
+    }
+
+    const hours = Math.floor(minutes / 60)
+
+    if (hours < 24) {
+        return `${hours} तासांपूर्वी`
+    }
+
+    const days = Math.floor(hours / 24)
+
+    if (days < 30) {
+        return `${days} दिवसांपूर्वी`
+    }
+
+    const months = Math.floor(days / 30)
+
+    if (months < 12) {
+        return `${months} महिन्यांपूर्वी`
+    }
+
+    const years = Math.floor(months / 12)
+
+    return `${years} वर्षांपूर्वी`
+}
+
+// utils/marathiDate.js
+
+const marathiMonths = [
+    'जानेवारी',
+    'फेब्रुवारी',
+    'मार्च',
+    'एप्रिल',
+    'मे',
+    'जून',
+    'जुलै',
+    'ऑगस्ट',
+    'सप्टेंबर',
+    'ऑक्टोबर',
+    'नोव्हेंबर',
+    'डिसेंबर'
+]
+
+const marathiNumbers = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९']
+
+function convertToMarathiNumber(value) {
+    return String(value)
+        .split('')
+        .map(char =>
+            /\d/.test(char)
+                ? marathiNumbers[Number(char)]
+                : char
+        )
+        .join('')
+}
+
+export function formatMarathiDate(timestamp) {
+    if (!timestamp) return ''
+
+    const date = new Date(timestamp)
+
+    const day = convertToMarathiNumber(date.getDate())
+    const month = marathiMonths[date.getMonth()]
+
+    return `${day} ${month}`
+}
+
+// utils/getCategoryNames.js
+
+export function getCategoryNames(categoryIds) {
+    const { categories } = useAuth()
+    if (!categoryIds || !categories.length) {
+        return []
+    }
+
+    // Convert string to array
+    const ids = Array.isArray(categoryIds)
+        ? categoryIds
+        : String(categoryIds)
+            .split(',')
+            .map(id => id.trim())
+
+    // Find matching category names
+    return ids
+        .map((id) => {
+            const category = categories.find(
+                (cat) => String(cat.id) === String(id)
+            )
+
+            return category ? category.name : null
+        })
+        .filter(Boolean)
+}
+
+export function getCategoryNamesEnglish(categoryIds) {
+    const { categories } = useAuth()
+    if (!categoryIds || !categories.length) {
+        return []
+    }
+
+    // Convert string to array
+    const ids = Array.isArray(categoryIds)
+        ? categoryIds
+        : String(categoryIds)
+            .split(',')
+            .map(id => id.trim())
+
+    // Find matching category names
+    return ids
+        .map((id) => {
+            const category = categories.find(
+                (cat) => String(cat.id) === String(id)
+            )
+
+            return category ? category.nameEnglish.toLowerCase() : null
+        })
+        .filter(Boolean)
+}

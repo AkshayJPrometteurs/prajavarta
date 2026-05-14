@@ -21,8 +21,9 @@ const PUNE_UPDATES = [
     'कात्रज-कोंढवा रस्त्याचे काम मार्चपर्यंत पूर्ण',
 ]
 
-const MainPageSidebar = () => {
+const MainPageSidebar = ({data = null}) => {
     const { screenWidth } = useScreenSize();
+    
     return (
         <aside className="space-y-4">
             {/* Fold 1: 300×250 */}
@@ -38,8 +39,8 @@ const MainPageSidebar = () => {
             <div style={{ padding: 20, border: '1px solid var(--border-default)' }}>
                 <CategoryUnderline name="Maharashtra" label="मिनी ट्रेंडिंग" />
                 <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                    {MINI_TRENDING.map((h, i) => (
-                        <CompactListItem key={i} n={i + 1} headline={h} />
+                    {data?.mini_trending_news?.map((h, i) => (
+                        <CompactListItem key={i} n={i + 1} headline={h?.title} />
                     ))}
                 </ol>
             </div>

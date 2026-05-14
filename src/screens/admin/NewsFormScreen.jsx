@@ -8,8 +8,10 @@ import { Save, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 import AdminLayout from '@/layout/AdminLayout'
 import ImageSelector from '@/components/admin/ImageSelector'
+import TiptapEditor from '@/components/admin/TiptapEditor'
 import Link from 'next/link'
 import axiosInstance from '@/lib/axios'
+import Select from 'react-select'
 
 const today = new Date().toISOString().slice(0, 10)
 
@@ -27,7 +29,7 @@ function normalizeDateTime(value) {
 const initialValues = {
     newsType: 'Image',
     ownerType: 'ADMIN',
-    categoryId: '',
+    categoryIds: [],
     districtId: '',
     subdivisionId: '',
     tehsilId: '',
@@ -50,10 +52,12 @@ const initialValues = {
 
 const validationSchema = Yup.object({
     title: Yup.string().required('News title is required'),
-    categoryId: Yup.string().required('Category is required'),
+    categoryIds: Yup.array()
+        .min(1, 'Please select at least one category')
+        .required('Required'),
     districtId: Yup.string().required('District is required'),
     description: Yup.string().required('Description is required'),
-    newsUrl: Yup.string().url('Invalid URL format'),
+    newsUrl: Yup.string().required('Invalid URL format'),
 })
 
 function normalizeDate(value) {
@@ -115,10 +119,24 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
             const response = await axiosInstance.get(`/admin/news?id=${newsId}`)
             if (response.data.success) {
                 const item = response.data.data
+                
+                // Parse categoryIds - handle both array and comma-separated string
+                let parsedCategoryIds = []
+                if (item.categoryIds) {
+                    if (Array.isArray(item.categoryIds)) {
+                        parsedCategoryIds = item.categoryIds.map(id => Number(id))
+                    } else if (typeof item.categoryIds === 'string') {
+                        parsedCategoryIds = item.categoryIds
+                            .split(',')
+                            .map(id => Number(id.trim()))
+                            .filter(id => !isNaN(id))
+                    }
+                }
+                
                 setFormValues({
                     newsType: item.newsType || 'Image',
                     ownerType: item.ownerType || 'ADMIN',
-                    categoryId: item.categoryId ? String(item.categoryId) : '',
+                    categoryIds: parsedCategoryIds,
                     districtId: item.districtId ? String(item.districtId) : '',
                     subdivisionId: item.subdivisionId ? String(item.subdivisionId) : '',
                     tehsilId: item.tehsilId ? String(item.tehsilId) : '',
@@ -184,8 +202,8 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
     return (
         <AdminLayout>
             <div className="rounded-xl border border-base-200 bg-base-100 shadow-sm">
-                <div className="border-b border-base-200 px-6 py-5">
-                    <h1 className="text-2xl font-bold text-base-content">
+                <div className="border-b border-base-200 p-4">
+                    <h1 className="text-xl font-bold text-base-content">
                         {mode === 'edit' ? 'Edit News' : 'Add News'}
                     </h1>
                 </div>
@@ -222,10 +240,12 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                                     galleryImages,
                                     createdAt: values.createdAt ? new Date(values.createdAt).toISOString() : null,
                                     tags: Array.isArray(values.tags) ? values.tags.join(',') : values.tags,
-                                    categoryId: values.categoryId || null,
-                                    districtId: values.districtId || null,
-                                    subdivisionId: values.subdivisionId || null,
-                                    tehsilId: values.tehsilId || null
+                                    categoryIds: Array.isArray(values.categoryIds) 
+                                        ? values.categoryIds.map(id => Number(id))
+                                        : [],
+                                    districtId: values.districtId ? Number(values.districtId) : null,
+                                    subdivisionId: values.subdivisionId ? Number(values.subdivisionId) : null,
+                                    tehsilId: values.tehsilId ? Number(values.tehsilId) : null
                                 }
 
                                 const response = mode === 'edit'
@@ -290,7 +310,7 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                             }, [values.subdivisionId])
 
                             return (
-                                <Form className="space-y-4 p-6">
+                                <Form className="space-y-4 px-6 pb-6 pt-3">
                                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                         <FormField label="News Type">
                                             <Field as="select" name="newsType" className="select select-bordered w-full">
@@ -304,21 +324,32 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                                         </FormField>
 
                                         <FormField
-                                            label="Category"
-                                            error={errors.categoryId && touched.categoryId ? errors.categoryId : null}
+                                            label="Categories"
+                                            error={errors.categoryIds && touched.categoryIds ? errors.categoryIds : null}
                                         >
-                                            <Field
-                                                as="select"
-                                                name="categoryId"
-                                                className={`select select-bordered w-full ${errors.categoryId && touched.categoryId ? 'select-error' : ''}`}
-                                            >
-                                                <option value="">Select</option>
-                                                {categories.map((category) => (
-                                                    <option key={category.id} value={category.id}>
-                                                        {category.name}
-                                                    </option>
-                                                ))}
-                                            </Field>
+                                            <Select
+                                                isMulti
+                                                name="categoryIds"
+                                                options={categories.map((category) => ({
+                                                    value: Number(category.id),
+                                                    label: category.name,
+                                                }))}
+                                                value={values.categoryIds?.map((categoryId) => {
+                                                    const category = categories.find((c) => Number(c.id) === categoryId)
+                                                    if (!category) return null
+                                                    return {
+                                                        value: categoryId,
+                                                        label: category?.name || ""
+                                                    }
+                                                }) || []}
+                                                onChange={(selectedOptions) => {
+                                                    const selectedValues = selectedOptions ? selectedOptions.map((option) => option.value) : []
+                                                    setFieldValue('categoryIds', selectedValues)
+                                                }}
+                                                classNamePrefix="react-select"
+                                                placeholder="Select Categories"
+                                                isClearable
+                                            />
                                         </FormField>
 
                                         <FormField
@@ -411,11 +442,11 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                                     </FormField>
 
                                     <FormField label="Summary">
-                                        <Field
-                                            as="textarea"
-                                            rows={5}
-                                            name="summary"
-                                            className="textarea textarea-bordered w-full"
+                                        <TiptapEditor
+                                            value={values.summary}
+                                            onChange={(html) => setFieldValue('summary', html)}
+                                            placeholder="Write a brief summary of the news..."
+                                            minHeight="200px"
                                         />
                                     </FormField>
 
@@ -423,11 +454,12 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                                         label="Description"
                                         error={errors.description && touched.description ? errors.description : null}
                                     >
-                                        <Field
-                                            as="textarea"
-                                            rows={8}
-                                            name="description"
-                                            className={`textarea textarea-bordered w-full ${errors.description && touched.description ? 'textarea-error' : ''}`}
+                                        <TiptapEditor
+                                            value={values.description}
+                                            onChange={(html) => setFieldValue('description', html)}
+                                            error={errors.description && touched.description ? errors.description : null}
+                                            placeholder="Write a detailed description of the news..."
+                                            minHeight="300px"
                                         />
                                     </FormField>
 

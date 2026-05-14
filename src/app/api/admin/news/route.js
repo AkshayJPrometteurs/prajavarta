@@ -81,6 +81,9 @@ function buildPayload(body) {
         videoUrl: body.videoUrl?.trim() || null,
         isActive: body.isActive !== false,
         categoryId: toInt(body.categoryId),
+        categoryIds: Array.isArray(body.categoryIds) && body.categoryIds.length > 0
+            ? body.categoryIds.join(',')
+            : null,
         districtId: toInt(body.districtId),
         subdivisionId: toInt(body.subdivisionId),
         tehsilId: toInt(body.tehsilId)
