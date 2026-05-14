@@ -1,5 +1,8 @@
 import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { existsSync } from 'fs'
+import { unlink } from 'fs/promises'
+import { join } from 'path'
 
 function generateSlug(value) {
     return value
@@ -52,7 +55,8 @@ const newsInclude = {
     },
     district: true,
     subdivision: true,
-    tehsil: true
+    tehsil: true,
+    galleryImages: true
 }
 
 function buildPayload(body) {
@@ -69,6 +73,12 @@ function buildPayload(body) {
         tags: body.tags?.trim() || null,
         sendNotification: body.sendNotification === true,
         publishedDate: toDate(body.publishedDate),
+        ...(body.createdAt && { createdAt: toDate(body.createdAt) }),
+        isBreakingNews: body.priority === 'Breaking',
+        isTrendingNews: body.priority === 'Trending',
+        isMiniTrendingNews: body.priority === 'Mini_Trending',
+        videoId: body.videoId?.trim() || null,
+        videoUrl: body.videoUrl?.trim() || null,
         isActive: body.isActive !== false,
         categoryId: toInt(body.categoryId),
         districtId: toInt(body.districtId),
@@ -166,7 +176,12 @@ export async function POST(request) {
         const news = await prisma.news.create({
             data: {
                 ...payload,
-                slug: await buildUniqueSlug(payload.title)
+                slug: await buildUniqueSlug(payload.title),
+                galleryImages: {
+                    create: Array.isArray(body.galleryImages)
+                        ? body.galleryImages.map(url => ({ imageUrl: url }))
+                        : []
+                }
             },
             include: newsInclude
         })
@@ -218,7 +233,13 @@ export async function PUT(request) {
             where: { id },
             data: {
                 ...payload,
-                slug: await buildUniqueSlug(payload.title, id)
+                slug: await buildUniqueSlug(payload.title, id),
+                galleryImages: {
+                    deleteMany: {},
+                    create: Array.isArray(body.galleryImages)
+                        ? body.galleryImages.map(url => ({ imageUrl: url }))
+                        : []
+                }
             },
             include: newsInclude
         })
@@ -252,6 +273,33 @@ export async function PATCH(request) {
         }
 
         if (action === 'delete') {
+            const newsItems = await prisma.news.findMany({
+                where: { id: { in: parsedIds } },
+                include: { galleryImages: true }
+            })
+
+            const deleteFile = async (filePath) => {
+                if (!filePath || !filePath.startsWith('/uploads/')) return
+                const absolutePath = join(process.cwd(), 'public', filePath)
+                try {
+                    if (existsSync(absolutePath)) {
+                        await unlink(absolutePath)
+                    }
+                } catch (err) {
+                    console.error(`Error deleting file ${absolutePath}:`, err)
+                }
+            }
+
+            for (const news of newsItems) {
+                if (news.featuredImage) await deleteFile(news.featuredImage)
+                if (news.galleryImage) await deleteFile(news.galleryImage)
+                if (news.galleryImages?.length > 0) {
+                    for (const img of news.galleryImages) {
+                        if (img.imageUrl) await deleteFile(img.imageUrl)
+                    }
+                }
+            }
+
             await prisma.news.deleteMany({
                 where: { id: { in: parsedIds } }
             })
@@ -285,6 +333,38 @@ export async function DELETE(request) {
                 { success: false, error: 'News ID is required' },
                 { status: 400 }
             )
+        }
+
+        const news = await prisma.news.findUnique({
+            where: { id },
+            include: { galleryImages: true }
+        })
+
+        if (!news) {
+            return NextResponse.json(
+                { success: false, error: 'News not found' },
+                { status: 404 }
+            )
+        }
+
+        const deleteFile = async (filePath) => {
+            if (!filePath || !filePath.startsWith('/uploads/')) return
+            const absolutePath = join(process.cwd(), 'public', filePath)
+            try {
+                if (existsSync(absolutePath)) {
+                    await unlink(absolutePath)
+                }
+            } catch (err) {
+                console.error(`Error deleting file ${absolutePath}:`, err)
+            }
+        }
+
+        if (news.featuredImage) await deleteFile(news.featuredImage)
+        if (news.galleryImage) await deleteFile(news.galleryImage)
+        if (news.galleryImages?.length > 0) {
+            for (const img of news.galleryImages) {
+                if (img.imageUrl) await deleteFile(img.imageUrl)
+            }
         }
 
         await prisma.news.delete({ where: { id } })

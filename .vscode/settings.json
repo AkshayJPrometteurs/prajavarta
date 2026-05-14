@@ -1,3 +1,10 @@
 {
-    "prisma.pinToPrisma6": false
+    "prisma.pinToPrisma6": false,
+    "css.validate": false,
+    "less.validate": false,
+    "scss.validate": false,
+    "css.customData": [],
+    "editor.quickSuggestions": {
+        "strings": true
+    }
 }

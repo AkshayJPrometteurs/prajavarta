@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useRef, useState } from 'react'
-import { Button } from '@headlessui/react'
 import { Image as ImageIcon, Save, Upload } from 'lucide-react'
 import { toast } from 'react-toastify'
 import AdminLayout from '@/layout/AdminLayout'
@@ -184,14 +183,14 @@ export default function MainAdvertisementBannerScreen() {
                         </p>
                     </div>
 
-                    <Button
+                    <button
                         onClick={handleSave}
                         disabled={state.saving || state.uploading || state.loading}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-pink-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-pink-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="btn btn-primary gap-2"
                     >
                         <Save size={18} />
                         {state.saving ? 'Saving...' : 'Save Banner'}
-                    </Button>
+                    </button>
                 </div>
 
                 <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">

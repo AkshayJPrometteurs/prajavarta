@@ -18,7 +18,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
 	return (
-		<html lang="mr" className={`${notoSans.variable} h-full antialiased`}>
+		<html lang="mr" data-theme="light" className={`${notoSans.variable} h-full antialiased`}>
 			<body className="min-h-full flex flex-col bg-white text-slate-900">
 				<ToastProvider>
 					<ReduxProvider>
