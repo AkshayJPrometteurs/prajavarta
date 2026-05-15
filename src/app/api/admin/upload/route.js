@@ -6,7 +6,8 @@ import { existsSync } from 'fs'
 const uploadFolders = {
     categories: ['uploads', 'admin', 'categories'],
     'main-advertisement-banner': ['uploads', 'admin', 'main-advertisement-banner'],
-    news: ['uploads', 'admin', 'news']
+    news: ['uploads', 'admin', 'news'],
+    authors: ['uploads', 'admin', 'authors']
 }
 
 // Generate random filename

@@ -75,3 +75,20 @@ export function GalleryIcon({ size = 14 }) {
         </svg>
     )
 }
+
+export function LinkedinIcon({ size = 14 }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a2.7 2.7 0 0 0-2.7-2.7c-1.2 0-1.8.7-2.1 1.1v-1h-2.5v7.9h2.5v-4.1c0-.2 0-.4.1-.6.1-.3.4-.6.9-.6.6 0 .8.5.8 1.2v4.1h2.5M7 10h2.5v7.9H7V10m1.2-1.1c.9 0 1.4-.6 1.4-1.2 0-.7-.5-1.2-1.4-1.2s-1.4.5-1.4 1.2c0 .6.5 1.2 1.4 1.2z" />
+        </svg>
+    )
+}
+
+export function MailIcon({ size = 14 }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+            <rect width="20" height="16" x="2" y="4" rx="2" />
+        </svg>
+    )
+}

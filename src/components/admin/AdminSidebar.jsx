@@ -3,13 +3,14 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useReduxAuth } from '@/hooks/useReduxAuth'
-import { LayoutDashboard, FolderOpen, Image, LogOut, Menu, Newspaper, X, MapPin } from 'lucide-react'
+import { LayoutDashboard, FolderOpen, Image, LogOut, Menu, Newspaper, X, MapPin, Users } from 'lucide-react'
 import { useState } from 'react'
 
 const menuItems = [
 	{ label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
 	{ label: 'Categories', href: '/admin/categories', icon: FolderOpen },
 	{ label: 'Manage News', href: '/admin/news', icon: Newspaper },
+	{ label: 'Authors', href: '/admin/authors', icon: Users },
 	{ label: 'Advertisement Banner', href: '/admin/main-advertisement-banner', icon: Image },
 	{ label: 'Districts', href: '/admin/districts', icon: MapPin },
 	{ label: 'Subdivisions', href: '/admin/subdivisions', icon: MapPin },

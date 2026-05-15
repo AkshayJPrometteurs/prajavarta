@@ -1,5 +1,5 @@
 "use client"
-import { memo } from "react"
+import { memo, useEffect, useState } from "react"
 import MainLayout from "@/layout/MainLayout"
 import Ad from "@/components/Ad"
 import { useScreenSize } from "@/hooks/useScreenSize"
@@ -10,118 +10,177 @@ import HeroCard from "@/components/cards/HeroCard"
 import { catColor } from "@/lib/catColors"
 import CategoriesSidebar from "./Sidebars/CategoriesSidebar"
 import { useParams } from "next/navigation"
-import { slugToMarathi } from "@/lib/helper"
-import Link from "next/link"
+import { getCategoryNames, getCategoryNamesEnglish } from "@/lib/helper"
+import { useAuth } from "@/contexts/AuthContext"
+import axiosInstance from "@/lib/axios"
 import SectionLayout from "@/layout/SectionLayout"
-
-const LATEST = [
-    'नागपूर हिवाळी अधिवेशनाची तारीख निश्चित, १६ डिसेंबरपासून सुरुवात',
-    'औरंगाबाद नामांतर वाद पुन्हा चर्चेत, सुप्रीम कोर्टात सुनावणी',
-    'नाशिकमध्ये द्राक्ष निर्यातीत २०% घट, युरोपीय निर्बंधांचा परिणाम',
-    'विधान परिषदेच्या निवडणुकीचे वेळापत्रक जाहीर',
-    'मराठवाड्यात अवकाळी पावसाचा कहर, १२ जिल्ह्यांत पीकहानी',
-    'कोकणात पावसाने सरासरी ओलांडली, शेतकऱ्यांना दिलासा',
-]
-
-const MOST_READ = [
-    'मराठा आरक्षणावर सर्वोच्च न्यायालयाची सुनावणी',
-    'शिवसेनेच्या अधिवेशनात ठाकरेंचे आक्रमक भाषण',
-    'महावितरणच्या वीजबिलात ८% वाढीचा प्रस्ताव',
-    'MPSC परीक्षेचे नवीन वेळापत्रक जाहीर',
-    'गणेशोत्सव परवानगी प्रक्रिया जलद',
-]
-
-const SUBCITIES = [
-    { city: 'मुंबई', h: 'मेट्रो लाईन ३ चे काम अंतिम टप्प्यात' },
-    { city: 'पुणे', h: 'हिंजवडीत आयटी विस्तार योजना मंजूर' },
-    { city: 'नागपूर', h: 'हिवाळी अधिवेशनाची तयारी सुरू' },
-]
-
-const EVERGREEN = [
-    'महाराष्ट्राच्या स्थापनेची पूर्ण कथा: १९६० ते आजपर्यंत',
-    'संयुक्त महाराष्ट्र चळवळ — एका लढ्याची शोधयात्रा',
-    'मराठी अस्मितेची नवी ओळख: संस्कृती, साहित्य, चित्रपट',
-    'महाराष्ट्रातील १० ऐतिहासिक स्थळे जी प्रत्येकाने पाहावी',
-]
-
-const RELATED_TAGS = ['मराठा आरक्षण', 'जरांगे पाटील', 'विधानसभा', 'मंत्रिमंडळ', 'फडणवीस', 'शिंदे', 'शेतकरी', 'कांदा', 'पाऊस', 'मुंबई', 'पुणे', 'नागपूर', 'हिवाळी अधिवेशन', 'सुप्रीम कोर्ट']
+import Link from "next/link"
 
 const Categories = () => {
+    const { categories } = useAuth();
     const { screenWidth } = useScreenSize();
     const { slug } = useParams();
     const CAT = decodeURIComponent(slug);
-    const TRENDING_CAT = [
-        { c: CAT, h: 'मनोज जरांगे पाटील आज औरंगाबादेत उपोषणाला बसणार' },
-        { c: CAT, h: 'मुंबईत मेट्रो लाईन ३ चे काम पूर्णत्वाच्या मार्गावर' },
-        { c: CAT, h: 'कोकण किनारपट्टीवर पर्यटनाला उत्तेजन देण्यासाठी नवी योजना' },
-        { c: CAT, h: 'विदर्भातील शेतकऱ्यांसाठी १,२०० कोटींचे पॅकेज जाहीर' },
-        { c: CAT, h: 'मराठी भाषा विद्यापीठाच्या स्थापनेला राज्य मंत्रिमंडळाची मान्यता' },
-    ]
+    const [categoryData, setCategoryData] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const getCategoryData = async () => {
+        if (!slug) return;
+        try {
+            setLoading(true);
+            const response = await axiosInstance.get(`/category/${slug}`);
+            if (response?.data?.success) {
+                setCategoryData(response?.data?.data);
+            }
+        } catch (error) {
+            console.error("Error fetching category data:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    useEffect(() => { getCategoryData() }, [slug]);
+
+    if (loading) {
+        return (
+            <MainLayout isBannerAdvertisement>
+                <div className="flex items-center justify-center min-h-screen">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+                        <p className="mt-4 text-gray-600">Loading...</p>
+                    </div>
+                </div>
+            </MainLayout>
+        );
+    }
+
+    const LATEST = categoryData?.latest_news || [];
+    const MOST_READ = categoryData?.most_read_news || [];
+    const SUBCITIES = categoryData?.location_news || [];
+    const EVERGREEN = categoryData?.evergreen_news || [];
+    const RELATED_TAGS = categoryData?.related_tags || [];
+    const TRENDING_CAT = categoryData?.trending_news || [];
+    const stats = categoryData?.stats || {};
+
+    const hasNoNews = LATEST.length === 0 &&
+        MOST_READ.length === 0 &&
+        SUBCITIES.length === 0 &&
+        EVERGREEN.length === 0 &&
+        TRENDING_CAT.length === 0;
+
+    if (!categoryData || hasNoNews) {
+        return (
+            <MainLayout isBannerAdvertisement>
+                <div className="flex items-center justify-center py-20 min-h-[60vh]">
+                    <div className="text-center py-20 bg-gray-50 rounded-lg w-full max-w-2xl mx-auto px-4">
+                        <p className="text-gray-500 text-lg">या श्रेणीसाठी सध्या कोणतीही बातमी उपलब्ध नाही.</p>
+                        <Link href="/" className="mt-4 inline-block text-orange-600 font-semibold hover:underline">
+                            मुख्यपृष्ठावर जा
+                        </Link>
+                    </div>
+                </div>
+            </MainLayout>
+        );
+    }
+
     return (
         <MainLayout isBannerAdvertisement>
             {/* Category header — full width */}
             <div style={{ borderBottom: `4px solid ${catColor(CAT)}`, paddingBottom: 24, marginBottom: 32 }}>
                 <h1 className="mr mb-3 text-[clamp(32px,4vw,48px)] font-extrabold leading-[1.1] tracking-[-0.02em]">
-                    {CAT}
+                    {categoryData?.category?.name}
                 </h1>
 
                 <p className="mr m-0 text-[clamp(14px,1.2vw,17px)] leading-[1.6]">
-                    महाराष्ट्रातून थेट: राजकारण, समाज, अर्थकारण, संस्कृती आणि शहर-ग्रामीण घडामोडी. राज्याच्या प्रत्येक कोपऱ्यातील विश्वासार्ह बातम्या.
+                    राजकारण, समाज, अर्थकारण, संस्कृती आणि शहर-ग्रामीण घडामोडी. राज्याच्या प्रत्येक कोपऱ्यातील विश्वासार्ह बातम्या.
                 </p>
 
                 <div className="flex gap-3.5 mt-3.5 text-[13px] text-(--text-tertiary)">
-                    <span className="mr">२,४८० बातम्या</span>
+                    <span className="mr">{stats.total_news || 0} बातम्या</span>
                     <span>·</span>
-                    <span className="mr">अद्यतनित: २९ एप्रिल २०२६</span>
-                    {screenWidth >= 768 && (
-                        <>
-                            <span>·</span>
-                            <span className="mr">२१८ संपादक</span>
-                        </>
-                    )}
+                    <span className="mr">
+                        {stats.last_updated
+                            ? new Date(stats.last_updated).toLocaleDateString('mr-IN', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric'
+                            })
+                            : 'अद्यतनित नाही'
+                        }
+                    </span>
                 </div>
             </div>
 
-            <SectionLayout sidebar={<CategoriesSidebar />}>
-                <HeroCard
-                    category={CAT}
-                    headline="राज्यात कांद्याच्या भावात मोठी घसरण, शेतकऱ्यांचे आंदोलन सुरू"
-                    redirectUrl={`/article/${CAT}`}
+            <SectionLayout sidebar={
+                <CategoriesSidebar
+                    cat={categoryData?.category?.name}
+                    categoryId={categoryData?.category?.id}
+                    categorySlug={categoryData?.category?.slug}
+                    mostRead={MOST_READ}
+                    recentlyUpdated={LATEST.slice(0, 5)}
                 />
+            }>
+                {LATEST.length > 0 && (
+                    <HeroCard
+                        category={getCategoryNames(LATEST[0]?.categoryIds, categories) || CAT}
+                        categoryNameEnglish={getCategoryNamesEnglish(LATEST[0]?.categoryIds, categories) || CAT}
+                        headline={LATEST[0]?.title || "No news available"}
+                        subtitle={LATEST[0]?.summary}
+                        redirectUrl={`/article/${LATEST[0]?.slug}`}
+                        advertisementImage={LATEST[0]?.featuredImage}
+                        data={LATEST[0]}
+                    />
+                )}
 
                 {/* Latest feed */}
-                <div className="mt-5">
-                    <CategoryUnderline name={CAT} label="ताज्या बातम्या" />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {LATEST.map((h, i) => (
-                            <StandardCard key={i} category={CAT} headline={h} layout="col" />
-                        ))}
+                {LATEST.length > 1 && (
+                    <div className="mt-5">
+                        <CategoryUnderline name={CAT} label="ताज्या बातम्या" />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {LATEST.slice(1).map((news, i) => (
+                                <StandardCard
+                                    key={news.id}
+                                    category={getCategoryNames(news?.categoryIds, categories) || CAT}
+                                    categoryNameEnglish={getCategoryNamesEnglish(news?.categoryIds, categories) || CAT}
+                                    headline={news.title}
+                                    layout="col"
+                                    imageUrl={news.featuredImage}
+                                    data={news}
+                                />
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <Ad
-                    id={screenWidth <= 768 ? "C1" : "DC3"}
-                    name={screenWidth <= 768 ? "Mobile Category Below Hero" : "Desktop Category Between Modules"}
-                    size={screenWidth <= 768 ? "300×250" : "728×90"}
-                    width={screenWidth <= 768 ? 300 : 728}
-                    height={screenWidth <= 768 ? 250 : 90}
-                    {...screenWidth <= 768 && { fluid: true }}
-                    className={`mx-auto ${screenWidth <= 768 ? "my-4 md:my-6" : "inline-block my-4 md:my-6"}`}
+                    id="DH3"
+                    name={screenWidth >= 1200 ? "Desktop Between Categories" : "Mobile Homepage Below-Header"}
+                    size={screenWidth >= 1200 ? "728×90" : "300×250"}
+                    width={screenWidth >= 1200 ? 728 : '100%'}
+                    height={screenWidth >= 1200 ? 90 : 250}
+                    className="flex items-center flex-col mx-auto"
                 />
 
                 {/* Trending */}
-                <div className="mt-5">
-                    <TrendingModule label={`${CAT}-मधील ट्रेंडिंग`} items={TRENDING_CAT} />
-                </div>
+                {TRENDING_CAT.length > 0 && (
+                    <div className="mt-5">
+                        <TrendingModule
+                            label={`${categoryData?.category?.name} - मधील ट्रेंडिंग`}
+                            items={TRENDING_CAT}
+                            url={`/trending?categoryId=${categoryData?.category?.id}&categoryName=${categoryData?.category?.name}`}
+                        />
+                    </div>
+                )}
 
                 {/* Mobile most-read */}
-                {screenWidth <= 768 && (
+                {screenWidth <= 768 && MOST_READ.length > 0 && (
                     <div className="mt-5">
-                        <CategoryUnderline name={CAT} label="सर्वाधिक वाचलेले" />
+                        <CategoryUnderline name={categoryData?.category?.name} label="सर्वाधिक वाचलेले" />
                         <ul className="list-none m-0 p-0">
-                            {MOST_READ.map((h, i) => (
-                                <li key={i} className="mr text-sm py-3.5 border-b border-(--border-default) font-medium">
-                                    {h}
+                            {MOST_READ.map((news, i) => (
+                                <li key={news.id} className="mr text-sm py-3.5 border-b border-(--border-default) font-medium">
+                                    <Link href={`/article/${news.slug}`} className="hover:text-orange-600">
+                                        {news.title}
+                                    </Link>
                                 </li>
                             ))}
                         </ul>
@@ -141,19 +200,30 @@ const Categories = () => {
                 )}
 
                 {/* Desktop subcategories */}
-                {screenWidth >= 768 && (
+                {screenWidth >= 768 && SUBCITIES.length > 0 && (
                     <div className="mt-5">
-                        <CategoryUnderline name={CAT} label="शहरांनुसार बातम्या" />
+                        <CategoryUnderline
+                            name={CAT}
+                            label="शहरांनुसार बातम्या"
+                            url="/city-wise-news"
+                        />
                         <div className="grid grid-cols-3 gap-6">
-                            {SUBCITIES.map((s) => (
-                                <div key={s.city}>
+                            {SUBCITIES.map((news) => (
+                                <div key={news.id}>
                                     <div
                                         className="mr text-[13px] font-bold mb-2.5 tracking-[0.04em]"
                                         style={{ color: catColor(CAT) }}
                                     >
-                                        {s.city}
+                                        {news.district?.name || 'शहर'}
                                     </div>
-                                    <StandardCard layout="col" category={CAT} headline={s.h} />
+                                    <StandardCard
+                                        layout="col"
+                                        category={getCategoryNames(news?.categoryIds) || CAT}
+                                        categoryNameEnglish={getCategoryNamesEnglish(news?.categoryIds) || CAT}
+                                        headline={news.title}
+                                        imageUrl={news.featuredImage}
+                                        data={news}
+                                    />
                                 </div>
                             ))}
                         </div>
@@ -161,50 +231,66 @@ const Categories = () => {
                 )}
 
                 {/* Mobile subcategories */}
-                {screenWidth <= 768 && (
+                {screenWidth <= 768 && categoryData?.subdivisions?.length > 0 && (
                     <div className="mt-5">
-                        <CategoryUnderline name={CAT} label="उप-विभाग" />
+                        <CategoryUnderline name={categoryData?.category?.name} label="उप-विभाग" />
                         <div className="grid grid-cols-3 gap-3">
-                            {['मुंबई', 'पुणे', 'नागपूर', 'औरंगाबाद', 'कोल्हापूर', 'नाशिक'].map((city) => (
-                                <a
-                                    key={city}
-                                    className="mr block px-3 py-3.5 border border-(--border-default) text-[13px] font-semibold cursor-pointer"
+                            {categoryData.subdivisions.map((sub) => (
+                                <Link
+                                    key={sub.id}
+                                    href={`/subdivision/${sub.nameEnglish}`}
+                                    className="mr block px-3 py-3.5 border border-(--border-default) text-[13px] font-semibold cursor-pointer hover:bg-gray-50 transition-colors"
                                 >
-                                    {city} →
-                                </a>
+                                    {sub.name} →
+                                </Link>
                             ))}
                         </div>
                     </div>
                 )}
 
                 {/* Evergreen */}
-                <div className="mt-5">
-                    <CategoryUnderline name={CAT} label="विशेष वाचा" />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {EVERGREEN.map((h, i) => (
-                            <StandardCard key={i} layout="col" category={CAT} headline={h} />
-                        ))}
+                {EVERGREEN.length > 0 && (
+                    <div className="mt-5">
+                        <CategoryUnderline 
+                            name={CAT} 
+                            label="विशेष वाचा" 
+                            url={categoryData?.category?.slug ? `/evergreen?category=${categoryData.category.slug}` : "/evergreen"}
+                        />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {EVERGREEN.map((news, i) => (
+                                <StandardCard
+                                    key={news.id}
+                                    layout="col"
+                                    category={getCategoryNames(news?.categoryIds, categories) || CAT}
+                                    headline={news.title}
+                                    imageUrl={news.featuredImage}
+                                    data={news}
+                                />
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Related tags */}
-                <div className="mt-5">
-                    <div className="mr text-[13px] font-bold tracking-[0.06em] uppercase mb-3.5">
-                        संबंधित विषय · TOPIC CLUSTER
-                    </div>
+                {RELATED_TAGS.length > 0 && (
+                    <div className="mt-5">
+                        <div className="mr text-[13px] font-bold tracking-[0.06em] uppercase mb-3.5">
+                            संबंधित विषय · TOPIC CLUSTER
+                        </div>
 
-                    <div className="flex flex-wrap gap-2.5">
-                        {RELATED_TAGS.map((t) => (
-                            <Link
-                                key={t}
-                                href={`/tag/${CAT}/${t}`}
-                                className="mr px-3.5 py-2 bg-(--brand-primary-light) text-sm font-semibold rounded-full cursor-pointer"
-                            >
-                                #{t}
-                            </Link>
-                        ))}
+                        <div className="flex flex-wrap gap-2.5">
+                            {RELATED_TAGS.map((t) => (
+                                <Link
+                                    key={t}
+                                    href={`/tag/${CAT}/${t}`}
+                                    className="mr px-3.5 py-2 bg-(--brand-primary-light) text-sm font-semibold rounded-full cursor-pointer"
+                                >
+                                    #{t}
+                                </Link>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Mobile ad */}
                 {screenWidth <= 768 && (

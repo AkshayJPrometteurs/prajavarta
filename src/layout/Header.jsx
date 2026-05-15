@@ -154,7 +154,7 @@ export default function Header() {
                             <div tabIndex={0} className="dropdown-content z-200 mt-1 w-125 bg-white text-[#1a1a1a] shadow-lg border-t-[3px] border-(--brand-primary) rounded-b pb-0.5 focus:outline-none">
                                 <div className="grid grid-cols-2 gap-2.5 mb-3.5 p-4 pb-0">
                                     {MEGA_NEWS.map((item, i) => (
-                                        <Link key={i} href="/all-news" className="flex gap-2.5 items-start">
+                                        <Link key={i} href="/city-wise-news" className="flex gap-2.5 items-start">
                                             <div className="w-16 h-12 shrink-0 rounded bg-gray-200" />
                                             <div>
                                                 <div className="text-[10px] font-bold uppercase mb-1" style={{ color: item.color }}>{item.c}</div>
@@ -163,7 +163,7 @@ export default function Header() {
                                         </Link>
                                     ))}
                                 </div>
-                                <Link href="/all-news" className="block text-center py-2.5 px-4 border-t text-[13px] font-bold text-(--brand-primary) hover:bg-orange-50">
+                                <Link href="/city-wise-news" className="block text-center py-2.5 px-4 border-t text-[13px] font-bold text-(--brand-primary) hover:bg-orange-50">
                                     सर्व बातम्या पहा →
                                 </Link>
                             </div>

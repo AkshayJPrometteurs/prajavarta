@@ -37,7 +37,7 @@ const MainPageSidebar = ({data = null}) => {
             />
 
             <div style={{ padding: 20, border: '1px solid var(--border-default)' }}>
-                <CategoryUnderline name="Maharashtra" label="मिनी ट्रेंडिंग" />
+                <CategoryUnderline name="Maharashtra" label="मिनी ट्रेंडिंग" url="/mini-trending" />
                 <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>
                     {data?.mini_trending_news?.map((h, i) => (
                         <CompactListItem key={i} n={i + 1} headline={h?.title} />
@@ -58,7 +58,7 @@ const MainPageSidebar = ({data = null}) => {
             <Newsletter />
 
             <div style={{ padding: 20, border: '1px solid var(--border-default)' }}>
-                <CategoryUnderline name="Pune" label="पुण्यातील अद्यतन" />
+                <CategoryUnderline name="Pune" label="पुण्यातील अद्यतन" url="/city-updates?district=Pune" />
                 <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {PUNE_UPDATES.map((h, i) => (
                         <li key={i} className="mr" style={{ fontSize: 14, lineHeight: 1.4, color: 'var(--text-primary)', borderBottom: '1px solid var(--border-default)', paddingBottom: 12 }}>

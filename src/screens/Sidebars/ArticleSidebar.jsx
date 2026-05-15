@@ -3,6 +3,7 @@
 import React, { memo } from "react";
 import Ad from "@/components/Ad";
 import Newsletter from "@/components/Newsletter";
+import Link from "next/link";
 import CategoryUnderline from "@/components/ui/CategoryUnderline";
 import CompactListItem from "@/components/ui/CompactListItem";
 import { FacebookIcon, LinkIcon, WhatsAppIcon, XIcon } from "@/components/ui/Icons";
@@ -30,7 +31,7 @@ const SHARE_BUTTONS = [
     { icon: <LinkIcon size={14} />, color: '#6B6B6B', label: 'Copy' },
 ]
 
-const ArticleSidebar = () => {
+const ArticleSidebar = ({ trending = [], mostRead = [] }) => {
     const { screenWidth } = useScreenSize();
     return (
         <aside className="space-y-5">
@@ -60,15 +61,23 @@ const ArticleSidebar = () => {
                 fluid={screenWidth <= 992}
             />
 
-            <div className="p-5 border border-(--border-default)">
-                <CategoryUnderline name="Maharashtra" label="मिनी ट्रेंडिंग" />
+            {trending.length > 0 && (
+                <div className="p-5 border border-(--border-default)">
+                    <CategoryUnderline name="Maharashtra" label="मिनी ट्रेंडिंग" url="/mini-trending" />
 
-                <ol className="list-none m-0 p-0">
-                    {MINI_TRENDING.map((h, i) => (
-                        <CompactListItem key={i} n={i + 1} headline={h} />
-                    ))}
-                </ol>
-            </div>
+                    <ol className="list-none m-0 p-0">
+                        {trending.map((item, i) => (
+                            <CompactListItem 
+                                key={i} 
+                                n={i + 1} 
+                                headline={item.title} 
+                                category={item.category?.name}
+                                slug={item.slug} 
+                            />
+                        ))}
+                    </ol>
+                </div>
+            )}
 
             {/* Fold 2 */}
             <Ad
@@ -81,15 +90,21 @@ const ArticleSidebar = () => {
             />
 
             <div className="p-5 border border-(--border-default)">
-                <CategoryUnderline name="Politics" label="सर्वाधिक वाचलेले" />
+                <CategoryUnderline name="Politics" label="सर्वाधिक वाचलेले" url="/most-read" />
 
                 <ul className="list-none m-0 p-0 flex flex-col gap-3.5">
-                    {MOST_READ.map((h, i) => (
+                    {(mostRead.length > 0 ? mostRead : MOST_READ).map((item, i) => (
                         <li
                             key={i}
                             className="mr text-sm leading-[1.45] text-(--text-primary) border-b border-(--border-default) pb-3.5 font-medium"
                         >
-                            {h}
+                            {typeof item === 'string' ? (
+                                item
+                            ) : (
+                                <Link href={`/article/${item.slug}`} className="hover:text-(--brand-primary) transition-colors">
+                                    {item.title}
+                                </Link>
+                            )}
                         </li>
                     ))}
                 </ul>
