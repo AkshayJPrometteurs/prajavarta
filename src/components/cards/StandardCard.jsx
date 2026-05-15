@@ -4,52 +4,58 @@ import ImagePlaceholder from "../ImagePlaceholder"
 import Badge from "../ui/Badge"
 import CategoryChip from "../ui/CategoryChip"
 import Meta from "../ui/Meta"
-import useImageExists from "@/hooks/useImageExists"
-import Image from "next/image"
+import CustomImage from "../ui/CustomImage"
+
+import { useAuth } from "@/contexts/AuthContext"
 
 const StandardCard = ({
     category,
+    categoryNameEnglish = "",
     headline,
     layout = 'row',
     badge,
     imageUrl,
     data = null
 }) => {
-    const { exists } = useImageExists(imageUrl);
+    const { categories } = useAuth();
     return (
         <article className={`w-full md:w-auto ${layout === 'row' ? 'grid grid-cols-[96px_1fr] sm:grid-cols-[112px_1fr] gap-3 items-start' : ''}`}>
             <div className="relative">
                 <Link href={`/article/${data?.slug}`}>
-                    {exists ? (
-                        <Image
-                            src={imageUrl}
-                            priority
-                            width={600}
-                            height={layout === 'row' ? 96 : 185}
-                            alt={imageUrl}
-                            style={{
-                                width: "100%",
-                                height: layout === 'row' ? 96 : 185,
-                                objectFit: "cover",
-                            }}
-                        />
-                    ) : (
-                        <ImagePlaceholder
-                            ratio={layout === 'row' ? '1/1' : '16/9'}
-                            label={layout === 'row' ? '240×240' : '600×338'}
-                        />
-                    )}
+                    <CustomImage
+                        src={imageUrl}
+                        width={600}
+                        height={layout === 'row' ? 96 : 185}
+                        alt={headline}
+                        className="w-full"
+                        style={{
+                            height: layout === 'row' ? 96 : 185,
+                        }}
+                    />
 
                     {badge && <Badge type={badge} />}
                 </Link>
             </div>
 
             <div className="pt-2">
-                {category.length > 0 && (
-                    <Link href={`/category/${category}`}>
-                        <CategoryChip name={category} />
-                    </Link>
-                )}
+                <div className="flex flex-wrap gap-2">
+                    {data?.categoryIds ? (
+                        String(data.categoryIds).split(',').map((idStr, idx) => {
+                            const id = parseInt(idStr.trim());
+                            const cat = categories.find(c => c.id === id);
+                            if (!cat) return null;
+                            return (
+                                <Link key={idx} href={`/category/${cat.nameEnglish}`}>
+                                    <CategoryChip name={cat.name} size="sm" />
+                                </Link>
+                            );
+                        })
+                    ) : category?.length > 0 && (
+                        <Link href={`/category/${categoryNameEnglish}`}>
+                            <CategoryChip name={category} />
+                        </Link>
+                    )}
+                </div>
 
                 <Link href={`/article/${data?.slug}`}>
                     <h4 className="mr mt-1.5 mb-1 font-semibold">

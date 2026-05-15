@@ -6,12 +6,15 @@ import FeaturedCard from "../cards/FeaturedCard";
 import StandardCard from "../cards/StandardCard";
 import { useScreenSize } from "../../hooks/useScreenSize";
 import { getCategoryNamesEnglish } from "@/lib/helper";
+import { useAuth } from "@/contexts/AuthContext";
 
 const CategorySection = ({ cat, hero, stories }) => {
     const { screenWidth } = useScreenSize();
+    const { categories } = useAuth();
+
     return (
         <section style={{ padding: '8px 0 24px' }}>
-            <CategoryUnderline name={cat} url={`/category/${getCategoryNamesEnglish(hero?.categoryIds)}`} />
+            <CategoryUnderline name={cat} url={`/category/${getCategoryNamesEnglish(hero?.categoryIds, categories)}`} />
             {screenWidth < 992 ? (
                 <>
                     {/* Mobile layout: featured + stacked list */}
@@ -27,15 +30,18 @@ const CategorySection = ({ cat, hero, stories }) => {
                                 borderTop: '1px solid var(--border-default)',
                             }}
                         >
-                            {stories.map((s, i) => (
-                                <StandardCard
-                                    key={i}
-                                    category={cat}
-                                    headline={s?.title}
-                                    imageUrl={s?.featuredImage}
-                                    data={s}
-                                />
-                            ))}
+                            {stories.map((s, i) => {
+                                return (
+                                    <StandardCard
+                                        key={i}
+                                        category={cat}
+                                        headline={s?.title}
+                                        imageUrl={s?.featuredImage}
+                                        data={s}
+                                        categoryNameEnglish={getCategoryNamesEnglish(s?.categoryIds, categories)}
+                                    />
+                                )
+                            })}
                         </div>
                     </div>
                 </>
@@ -52,6 +58,8 @@ const CategorySection = ({ cat, hero, stories }) => {
                                     headline={s?.title}
                                     layout="row"
                                     imageUrl={s?.featuredImage}
+                                    data={s}
+                                    categoryNameEnglish={getCategoryNamesEnglish(s?.categoryIds, categories)}
                                 />
                             ))}
                         </div>

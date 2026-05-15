@@ -4,25 +4,25 @@ import { memo } from "react"
 import CategoryUnderline from '@/components/ui/CategoryUnderline'
 import { catColor } from '@/lib/catColors'
 import { getCategoryNames, getCategoryNamesEnglish } from "@/lib/helper"
-import useImageExists from "@/hooks/useImageExists"
-import Image from "next/image"
 import Link from "next/link"
+import CustomImage from "@/components/ui/CustomImage"
+import { useAuth } from "@/contexts/AuthContext"
 
 // Heat gradient: rank 1 = hottest red → rank 5 = coolest blue
 const RANK_COLORS = ['#B71C1C', '#E64A19', '#F9A825', '#2E7D32', '#1565C0']
 
-const TrendingModule = ({ items, label = 'ट्रेंडिंग', isBgColor }) => {
+const TrendingModule = ({ items, label = 'ट्रेंडिंग', isBgColor, url = "/trending" }) => {
+	const { categories } = useAuth();
 	return (
 		<section className={isBgColor ? 'bg-gray-100 p-4 sm:p-6' : ''}>
 			<CategoryUnderline
 				name="Maharashtra"
 				label={label}
-				url="/all-news"
+				url={url}
 			/>
 
 			<ol className="list-none m-0 p-0">
 				{items?.map((item, i) => {
-					const { exists } = useImageExists(item.featuredImage)
 					return (
 						<li
 							key={i}
@@ -45,11 +45,11 @@ const TrendingModule = ({ items, label = 'ट्रेंडिंग', isBgColo
 							{/* Category + headline */}
 							<div className="min-w-0">
 								<Link
-									href={`/news/${getCategoryNamesEnglish(item.categoryIds)}`}
+									href={`/category/${getCategoryNamesEnglish(item.categoryIds, categories)}`}
 									className="mr text-xs font-bold uppercase tracking-wider mb-1"
-									style={{ color: catColor(getCategoryNames(item.categoryIds)) }}
+									style={{ color: catColor(getCategoryNames(item.categoryIds, categories)) }}
 								>
-									{getCategoryNames(item.categoryIds)}
+									{getCategoryNames(item.categoryIds, categories)}
 								</Link>
 
 								<Link
@@ -60,20 +60,16 @@ const TrendingModule = ({ items, label = 'ट्रेंडिंग', isBgColo
 								</Link>
 							</div>
 
-							{/* Thumbnail placeholder */}
-							{exists ? (
-								<Link href={`/article/${item.slug}`}>
-									<Image
-										src={item.featuredImage}
-										alt={item.title}
-										width={64}
-										height={64}
-										className="w-16 sm:w-20 h-12 sm:h-14 shrink-0"
-									/>
-								</Link>
-							) : (
-								<div className="imgph w-16 sm:w-20 h-12 sm:h-14 rounded text-[9px] shrink-0" />
-							)}
+							{/* Thumbnail */}
+							<Link href={`/article/${item.slug}`}>
+								<CustomImage
+									src={item.featuredImage}
+									alt={item.title}
+									width={64}
+									height={64}
+									className="w-16 sm:w-20 h-12 sm:h-14 shrink-0"
+								/>
+							</Link>
 						</li>
 					)
 				})}

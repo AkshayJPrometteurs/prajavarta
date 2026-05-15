@@ -1,7 +1,8 @@
 import { catColor } from '@/lib/catColors'
+import Link from 'next/link'
 
-export default function CompactListItem({ n, headline, category }) {
-    return (
+export default function CompactListItem({ n, headline, category, slug }) {
+    const content = (
         <li
             style={{
                 display: 'grid',
@@ -10,6 +11,7 @@ export default function CompactListItem({ n, headline, category }) {
                 padding: '12px 0',
                 borderBottom: '1px solid var(--border-default)',
                 listStyle: 'none',
+                cursor: slug ? 'pointer' : 'default'
             }}
         >
             <span
@@ -54,4 +56,14 @@ export default function CompactListItem({ n, headline, category }) {
             </div>
         </li>
     )
+
+    if (slug) {
+        return (
+            <Link href={`/article/${slug}`} className="no-underline hover:opacity-80 transition-opacity">
+                {content}
+            </Link>
+        )
+    }
+
+    return content
 }

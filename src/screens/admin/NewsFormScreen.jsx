@@ -46,6 +46,7 @@ const initialValues = {
     createdAt: normalizeDateTime(new Date()),
     priority: 'Normal',
     tags: [],
+    authorId: '',
     sendNotification: false,
     isActive: true
 }
@@ -71,6 +72,7 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
     const [districts, setDistricts] = useState([])
     const [subdivisions, setSubdivisions] = useState([])
     const [tehsils, setTehsils] = useState([])
+    const [authors, setAuthors] = useState([])
 
     const [loading, setLoading] = useState(mode === 'edit')
     const [saving, setSaving] = useState(false)
@@ -89,7 +91,8 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                 axiosInstance.get('/admin/categories', { params: { isActive: true, limit: 1000 } }),
                 axiosInstance.get('/admin/districts', { params: { isActive: true, limit: 1000 } }),
                 axiosInstance.get('/admin/subdivisions', { params: { isActive: true, limit: 1000 } }),
-                axiosInstance.get('/admin/tehsils', { params: { isActive: true, limit: 1000 } })
+                axiosInstance.get('/admin/tehsils', { params: { isActive: true, limit: 1000 } }),
+                axiosInstance.get('/admin/authors', { params: { isActive: true } })
             ])
 
             if (categoryResponse.data.success) {
@@ -106,6 +109,10 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
 
             if (tehsilResponse.data.success) {
                 setTehsils(tehsilResponse.data.data || [])
+            }
+
+            if (authorResponse.data.success) {
+                setAuthors(authorResponse.data.data || [])
             }
         } catch {
             toast.error('Failed to load form options')
@@ -155,6 +162,7 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                         item.isTrendingNews ? 'Trending' :
                             item.isMiniTrendingNews ? 'Mini_Trending' : 'Normal',
                     tags: item.tags ? item.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+                    authorId: item.authorId ? String(item.authorId) : '',
                     sendNotification: item.sendNotification === true,
                     isActive: item.isActive !== false
                 })
@@ -245,7 +253,8 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                                         : [],
                                     districtId: values.districtId ? Number(values.districtId) : null,
                                     subdivisionId: values.subdivisionId ? Number(values.subdivisionId) : null,
-                                    tehsilId: values.tehsilId ? Number(values.tehsilId) : null
+                                    tehsilId: values.tehsilId ? Number(values.tehsilId) : null,
+                                    authorId: values.authorId ? Number(values.authorId) : null
                                 }
 
                                 const response = mode === 'edit'
@@ -316,6 +325,17 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
                                             <Field as="select" name="newsType" className="select select-bordered w-full">
                                                 <option value="Image">Image</option>
                                                 <option value="Video">Video</option>
+                                            </Field>
+                                        </FormField>
+
+                                        <FormField label="Author">
+                                            <Field as="select" name="authorId" className="select select-bordered w-full">
+                                                <option value="">Select Author</option>
+                                                {authors.map(author => (
+                                                    <option key={author.id} value={author.id}>
+                                                        {author.name} ({author.role || 'No Role'})
+                                                    </option>
+                                                ))}
                                             </Field>
                                         </FormField>
 

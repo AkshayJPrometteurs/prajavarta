@@ -1,15 +1,10 @@
-import AllNews from "@/screens/AllNews";
+import DistrictNews from "@/screens/DistrictNews";
 
 export const metadata = {
-    title: process.env.NEXT_PUBLIC_APP_NAME + " - सर्व न्यूज",
-    description: process.env.NEXT_PUBLIC_APP_NAME + " - सर्व न्यूज",
-};
-
-const AllNewsPage = () => {
-    return (
-        <AllNews />
-    );
+    title: 'शहरांनुसार बातम्या | प्रजावार्ता',
+    description: 'महाराष्ट्रातील विविध शहरे आणि जिल्ह्यांतील ताज्या घडामोडी आणि बातम्या.',
 }
 
-export default AllNewsPage;
-
+export default function AllNewsPage() {
+    return <DistrictNews />;
+}

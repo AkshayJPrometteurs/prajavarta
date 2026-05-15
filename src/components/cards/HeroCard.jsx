@@ -1,11 +1,8 @@
 import { memo } from 'react'
 import CategoryChip from '@/components/ui/CategoryChip'
 import Meta from '@/components/ui/Meta'
-import ImagePlaceholder from '../ImagePlaceholder'
 import Link from 'next/link'
-import useImageExists from '@/hooks/useImageExists'
-import { useAuth } from '@/contexts/AuthContext'
-import Image from 'next/image'
+import CustomImage from '@/components/ui/CustomImage'
 
 const HeroCard = ({
     category,
@@ -13,34 +10,28 @@ const HeroCard = ({
     subtitle,
     redirectUrl = "",
     advertisementImage = "",
-    data = null
+    data = null,
+    categoryNameEnglish = ""
 }) => {
-    const { exists } = useImageExists(advertisementImage);
-    const { categories } = useAuth();
     return (
         <article>
             <Link href={redirectUrl}>
-                {exists ? (
-                    <Image
-                        src={advertisementImage}
-                        priority
-                        width={600}
-                        height={500}
-                        alt={advertisementImage}
-                        style={{
-                            width: "100%",
-                            height: "500px",
-                            objectFit: "cover",
-                        }}
-                    />
-                ) : (
-                    <ImagePlaceholder ratio="16/9" label="hero image · 1200×675" />
-                )}
+                <CustomImage
+                    src={advertisementImage}
+                    priority
+                    width={1200}
+                    height={675}
+                    alt={headline}
+                    className="w-full"
+                    style={{
+                        height: "500px",
+                    }}
+                />
             </Link>
 
             <div className="hero-card-body">
                 {category.length > 0 && (
-                    <Link href={`/category/${category}`}>
+                    <Link href={`/category/${categoryNameEnglish}`}>
                         <CategoryChip name={category} />
                     </Link>
                 )}
@@ -50,7 +41,6 @@ const HeroCard = ({
                 </Link>
 
                 <Link href={redirectUrl}>
-                    {/* <p className="hero-card-subtitle">{subtitle}</p> */}
                     <div dangerouslySetInnerHTML={{ __html: subtitle }} />
                 </Link>
 

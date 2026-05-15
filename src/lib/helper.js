@@ -1,4 +1,3 @@
-import { useAuth } from "@/contexts/AuthContext";
 
 const EN_TO_MR = {
     home: "मुख्यपृष्ठ",
@@ -140,9 +139,8 @@ export function formatMarathiDate(timestamp) {
 
 // utils/getCategoryNames.js
 
-export function getCategoryNames(categoryIds) {
-    const { categories } = useAuth()
-    if (!categoryIds || !categories.length) {
+export function getCategoryNames(categoryIds, categories = []) {
+    if (!categoryIds || !categories || !categories.length) {
         return []
     }
 
@@ -165,9 +163,8 @@ export function getCategoryNames(categoryIds) {
         .filter(Boolean)
 }
 
-export function getCategoryNamesEnglish(categoryIds) {
-    const { categories } = useAuth()
-    if (!categoryIds || !categories.length) {
+export function getCategoryNamesEnglish(categoryIds, categories = []) {
+    if (!categoryIds || !categories || !categories.length) {
         return []
     }
 

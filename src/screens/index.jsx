@@ -12,10 +12,11 @@ import SectionLayout from "@/layout/SectionLayout"
 import HeroCard from "@/components/cards/HeroCard"
 import axiosInstance from "@/lib/axios"
 import StandardCard from "@/components/cards/StandardCard"
-import { get } from "node:http"
-import { getCategoryNames } from "@/lib/helper"
+import { getCategoryNames, getCategoryNamesEnglish } from "@/lib/helper"
+import { useAuth } from "@/contexts/AuthContext"
 
 const MainPage = () => {
+    const { categories } = useAuth();
     const { screenWidth } = useScreenSize();
     const [pageData, setPageData] = useState(null);
     const [categoriesWiseData, setCategoriesWiseData] = useState([])
@@ -31,6 +32,7 @@ const MainPage = () => {
                     hero: newsItems[0] || {},
                     stories: newsItems.slice(1, 4).map((item) => ({
                         title: item.title || '',
+                        categoryIds: item.categoryIds || '',
                         featuredImage: item.featuredImage || '',
                         slug: item.slug || '',
                         createdAt: item.createdAt || '',
@@ -55,7 +57,8 @@ const MainPage = () => {
                 <SectionLayout sidebar={<MainPageSidebar data={pageData} />}>
                     {/* Hero story */}
                     <HeroCard
-                        category={getCategoryNames(pageData?.one_latest_news?.[0]?.categoryIds) || []}
+                        category={getCategoryNames(pageData?.one_latest_news?.[0]?.categoryIds, categories) || []}
+                        categoryNameEnglish={getCategoryNamesEnglish(pageData?.one_latest_news?.[0]?.categoryIds, categories) || []}
                         headline={pageData?.one_latest_news[0]?.title}
                         subtitle={pageData?.one_latest_news[0]?.summary}
                         redirectUrl={`/article/${pageData?.one_latest_news?.[0]?.slug}`}
@@ -70,7 +73,8 @@ const MainPage = () => {
                             return (
                                 <div key={content?.id} className={isLast ? 'block md:hidden' : ''}>
                                     <StandardCard
-                                        category={getCategoryNames(content?.categoryIds) || ""}
+                                        category={getCategoryNames(content?.categoryIds, categories) || ""}
+                                        categoryNameEnglish={getCategoryNamesEnglish(content?.categoryIds, categories) || ""}
                                         headline={content?.title}
                                         layout="col"
                                         imageUrl={content?.featuredImage}

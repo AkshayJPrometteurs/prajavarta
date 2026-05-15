@@ -4,7 +4,7 @@ import { memo } from 'react'
 import Link from 'next/link'
 import { catColor } from '@/lib/catColors'
 
-const CategoryUnderline = ({ name, label, url }) => {
+const CategoryUnderline = ({ name, label, url, viewAll = true }) => {
     return (
         <div
             className="flex items-center justify-between pb-2 mb-4 gap-3"
@@ -13,14 +13,15 @@ const CategoryUnderline = ({ name, label, url }) => {
             <h3 className="mr m-0 text-base sm:text-lg font-bold">
                 {label || name}
             </h3>
-
-            <Link
-                href={url || '/'}
-                className="mr text-[11px] sm:text-[12px] font-semibold no-underline cursor-pointer whitespace-nowrap shrink-0"
-                style={{ color: catColor(name) }}
-            >
-                सर्व पहा →
-            </Link>
+            {viewAll && (
+                <Link
+                    href={url || '/'}
+                    className="mr text-[11px] sm:text-[12px] font-semibold no-underline cursor-pointer whitespace-nowrap shrink-0"
+                    style={{ color: catColor(name) }}
+                >
+                    सर्व पहा →
+                </Link>
+            )}
         </div>
     )
 }
