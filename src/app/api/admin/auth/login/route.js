@@ -13,8 +13,8 @@ export async function POST(request) {
       )
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email }
+    const user = await prisma.user.findFirst({
+      where: { email, role: 'ADMIN' }
     })
 
     if (!user) {

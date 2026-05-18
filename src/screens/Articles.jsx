@@ -6,14 +6,12 @@ import CategoryChip from "@/components/ui/CategoryChip"
 import Ad from "@/components/Ad"
 import { useScreenSize } from "@/hooks/useScreenSize"
 import { WhatsAppIcon, FacebookIcon, XIcon, LinkIcon } from "@/components/ui/Icons"
-import ImagePlaceholder from "@/components/ImagePlaceholder"
 import CategoryUnderline from "@/components/ui/CategoryUnderline"
 import StandardCard from "@/components/cards/StandardCard"
-import TrendingModule from "./HomePageSections/TrendingModule"
 import ArticleSidebar from "./Sidebars/ArticleSidebar"
 import { useParams } from "next/navigation"
 import SectionLayout from "@/layout/SectionLayout"
-
+import { toast } from 'react-toastify'
 import axiosInstance from "@/lib/axios"
 import { timeAgo } from "@/lib/helper"
 import CustomImage from "@/components/ui/CustomImage"
@@ -34,10 +32,13 @@ const Articles = () => {
     // The last part of the slug is usually the article slug
     const articleSlug = slug[slug.length - 1];
 
+    const [categories, setCategories] = useState([]);
     const [article, setArticle] = useState(null);
     const [relatedNews, setRelatedNews] = useState([]);
     const [trendingNews, setTrendingNews] = useState([]);
     const [mostReadNews, setMostReadNews] = useState([]);
+    const [saved, setSaved] = useState(false);
+    const [saveLoading, setSaveLoading] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -47,10 +48,12 @@ const Articles = () => {
             setLoading(true);
             const response = await axiosInstance.get(`/news/${articleSlug}`);
             if (response.data.success) {
+                setCategories(response.data.data.categoryList || []);
                 setArticle(response.data.data.article);
                 setRelatedNews(response.data.data.relatedNews);
                 setTrendingNews(response.data.data.trendingNews);
                 setMostReadNews(response.data.data.mostReadNews || []);
+                setSaved(response.data.data.saved ?? false);
             }
         } catch (err) {
             console.error("Error fetching article:", err);
@@ -64,6 +67,45 @@ const Articles = () => {
         fetchArticle();
         window.scrollTo(0, 0);
     }, [articleSlug]);
+
+    const handleSaveClick = async () => {
+        if (!article) return;
+        setSaveLoading(true);
+
+        try {
+            const response = await axiosInstance.post('/news/save', {
+                newsId: article.id
+            });
+
+            if (response.data.success) {
+                setSaved(response.data.saved);
+
+                const message =
+                    response.data.message ||
+                    (response.data.saved
+                        ? 'Article saved successfully.'
+                        : 'Article removed from saved items.');
+
+                toast.success(message);
+            } else {
+                const errorMessage =
+                    response.data.error ||
+                    'बातमी जतन केली जाऊ शकली नाही. कृपया पुन्हा प्रयत्न करा.';
+
+                toast.error(errorMessage);
+            }
+        } catch (err) {
+            console.error('Error saving article:', err);
+
+            const serverMessage =
+                err.response?.data?.error ||
+                'बातमी जतन करण्यात अडचण आली. कृपया लॉगिन करा.';
+
+            toast.error(serverMessage);
+        } finally {
+            setSaveLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (screenWidth > 768) return;
@@ -106,6 +148,7 @@ const Articles = () => {
     }
 
     const tags = article.tags ? article.tags.split(',').map(t => t.trim()) : [];
+    const categorySlug = article.category?.slug || article.category?.nameEnglish?.toLowerCase();
 
     return (
         <MainLayout isBannerAdvertisement>
@@ -132,21 +175,39 @@ const Articles = () => {
                     </span>
                 </div>
 
-                <SectionLayout sidebar={<ArticleSidebar trending={trendingNews} mostRead={mostReadNews} />}>
-                    <CategoryChip name={article.category?.name || "बातमी"} />
+                <SectionLayout
+                    sidebar={
+                        <ArticleSidebar
+                            trending={trendingNews}
+                            mostRead={mostReadNews}
+                        />
+                    }
+                >
+                    {categories.length > 0 ? (
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {categories.map((category) => (
+                                <CategoryChip
+                                    key={category.id}
+                                    name={category.name}
+                                    url={`/category/${category.nameEnglish?.toLowerCase()}`}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <CategoryChip name={article.category?.name || "बातमी"} />
+                    )}
+
                     <div>
                         <h1 className="mr my-3 leading-tight font-extrabold tracking-[-0.01em] text-(--text-primary) text-[clamp(26px,4vw,38px)]">
                             {article.title}
                         </h1>
 
                         {article.summary && (
-                            <p className="mr mb-4 text-[clamp(16px,2vw,20px)] leading-[1.45] text-(--text-secondary) font-medium">
-                                {article.summary}
-                            </p>
+                            <div dangerouslySetInnerHTML={{ __html: article.summary }} />
                         )}
 
                         {/* Author byline */}
-                        <div className="flex items-center gap-3 py-3 border-t border-b border-(--border-default)">
+                        <div className="flex items-center gap-3 py-3 border-t border-b border-(--border-default) my-4">
                             <div className="w-12 h-12 rounded-full bg-(--brand-primary-light) flex items-center justify-center font-bold text-(--brand-primary) text-base shrink-0 overflow-hidden">
                                 {article.author?.image ? (
                                     <img src={article.author.image} alt={article.author.name} className="w-full h-full object-cover" />
@@ -172,8 +233,12 @@ const Articles = () => {
                                 </div>
                             </div>
 
-                            <button className="px-3.5 py-2 bg-white border border-(--border-strong) text-xs font-semibold rounded cursor-pointer">
-                                Save
+                            <button
+                                onClick={handleSaveClick}
+                                disabled={saveLoading}
+                                className={`px-3.5 py-2 text-xs font-semibold rounded cursor-pointer ${saved ? 'bg-orange-600 text-white border-orange-600' : 'bg-white border border-(--border-strong) text-(--text-primary)'}`}
+                            >
+                                {saveLoading ? 'Saving...' : saved ? 'Saved' : 'Save'}
                             </button>
                         </div>
 
@@ -227,7 +292,7 @@ const Articles = () => {
                                 {tags.map((t) => (
                                     <Link
                                         key={t}
-                                        href={`/tag/${t}`}
+                                        href={categorySlug ? `/tag/${categorySlug}/${t}` : `/tag/${t}`}
                                         className="mr px-3.5 py-1.5 border border-(--border-default) rounded-full text-[13px] text-(--text-secondary) cursor-pointer"
                                     >
                                         #{t}
@@ -238,7 +303,7 @@ const Articles = () => {
 
                         {/* Author bio */}
                         {article.author && (
-                            <div className="p-6 bg-(--surface-secondary) flex gap-5 mb-8 rounded-lg">
+                            <div className="p-6 bg-(--surface-secondary) flex gap-5 mb-8 rounded-lg my-4">
                                 <div className="w-18 h-18 rounded-full bg-(--brand-primary-light) flex items-center justify-center font-bold text-(--brand-primary) text-[22px] shrink-0 overflow-hidden">
                                     {article.author.image ? (
                                         <img src={article.author.image} alt={article.author.name} className="w-full h-full object-cover" />
@@ -289,7 +354,13 @@ const Articles = () => {
                             />
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {relatedNews.map((s, i) => (
-                                    <StandardCard key={i} data={s} category={s.category?.name} headline={s.title} layout="col" imageUrl={s.featuredImage} />
+                                    <StandardCard
+                                        key={i}
+                                        data={s}
+                                        headline={s.title}
+                                        layout="col"
+                                        imageUrl={s.featuredImage}
+                                    />
                                 ))}
                             </div>
                         </div>

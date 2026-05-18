@@ -1,31 +1,46 @@
 "use client"
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useReduxAuth } from '@/hooks/useReduxAuth'
 import { LayoutDashboard, FolderOpen, Image, LogOut, Menu, Newspaper, X, MapPin, Users } from 'lucide-react'
 import { useState } from 'react'
 
-const menuItems = [
-	{ label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-	{ label: 'Categories', href: '/admin/categories', icon: FolderOpen },
-	{ label: 'Manage News', href: '/admin/news', icon: Newspaper },
-	{ label: 'Authors', href: '/admin/authors', icon: Users },
-	{ label: 'Advertisement Banner', href: '/admin/main-advertisement-banner', icon: Image },
-	{ label: 'Districts', href: '/admin/districts', icon: MapPin },
-	{ label: 'Subdivisions', href: '/admin/subdivisions', icon: MapPin },
-	{ label: 'Tehsils', href: '/admin/tehsils', icon: MapPin },
-	{ label: 'Locations', href: '/admin/location-list', icon: MapPin },
-]
-
 export default function AdminSidebar() {
 	const pathname = usePathname()
 	const { logout } = useReduxAuth()
+	const { user } = useReduxAuth()
+	const router = useRouter()
 	const [isOpen, setIsOpen] = useState(false)
+
+	let menuItems = []
+
+	if (user?.role === 'AUTHOR') {
+		menuItems = [
+			{ label: 'Dashboard', href: '/author', icon: LayoutDashboard },
+			{ label: 'Manage News', href: '/author/news', icon: Newspaper },
+			{ label: 'Districts', href: '/author/districts', icon: MapPin },
+			{ label: 'Subdivisions', href: '/author/subdivisions', icon: MapPin },
+			{ label: 'Tehsils', href: '/author/tehsils', icon: MapPin },
+			{ label: 'Locations', href: '/author/location-list', icon: MapPin },
+		]
+	} else {
+		menuItems = [
+			{ label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+			{ label: 'Categories', href: '/admin/categories', icon: FolderOpen },
+			{ label: 'Manage News', href: '/admin/news', icon: Newspaper },
+			{ label: 'Authors', href: '/admin/authors', icon: Users },
+			{ label: 'Advertisement Banner', href: '/admin/main-advertisement-banner', icon: Image },
+			{ label: 'Districts', href: '/admin/districts', icon: MapPin },
+			{ label: 'Subdivisions', href: '/admin/subdivisions', icon: MapPin },
+			{ label: 'Tehsils', href: '/admin/tehsils', icon: MapPin },
+			{ label: 'Locations', href: '/admin/location-list', icon: MapPin },
+		]
+	}
 
 	const handleLogout = async () => {
 		await logout()
-		window.location.href = '/admin/login'
+		router.push(`/${user?.role?.toLowerCase()}/login`)
 	}
 
 	return (
@@ -57,7 +72,7 @@ export default function AdminSidebar() {
 				<nav className="space-y-1 px-4 py-6">
 					{menuItems.map((item) => {
 						const Icon = item.icon
-						const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`)
+						const isActive = pathname === item.href
 						return (
 							<Link
 								key={item.href}

@@ -87,7 +87,7 @@ export default function NewsFormScreen({ mode = 'add', newsId }) {
 
     const fetchOptions = async () => {
         try {
-            const [categoryResponse, districtResponse, subdivisionResponse, tehsilResponse] = await Promise.all([
+            const [categoryResponse, districtResponse, subdivisionResponse, tehsilResponse, authorResponse] = await Promise.all([
                 axiosInstance.get('/admin/categories', { params: { isActive: true, limit: 1000 } }),
                 axiosInstance.get('/admin/districts', { params: { isActive: true, limit: 1000 } }),
                 axiosInstance.get('/admin/subdivisions', { params: { isActive: true, limit: 1000 } }),

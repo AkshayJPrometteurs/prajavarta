@@ -12,11 +12,12 @@ export async function GET(request, { params }) {
         const skip = (page - 1) * limit
 
         // 1. Fetch Author Details
-        const author = await prisma.author.findFirst({
+        const author = await prisma.user.findFirst({
             where: {
                 OR: [
                     { nameEnglish: slug },
-                    { name: decodeURIComponent(slug) }
+                    { name: decodeURIComponent(slug) },
+                    { role: 'AUTHOR' }
                 ],
                 isActive: true
             }

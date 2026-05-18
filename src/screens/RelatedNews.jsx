@@ -49,6 +49,7 @@ const RelatedNews = () => {
                 <CategoryUnderline
                     name="Related"
                     label="संबंधित बातम्या"
+                    viewAll={false}
                 />
                 <p className="text-gray-600 mt-2">
                     या बातमीशी संबंधित अधिक सविस्तर बातम्या आणि घडामोडी.
@@ -66,8 +67,6 @@ const RelatedNews = () => {
                             <StandardCard
                                 key={item.id}
                                 layout="col"
-                                category={getCategoryNames(item.categoryIds, categories)}
-                                categoryNameEnglish={getCategoryNamesEnglish(item.categoryIds, categories)}
                                 headline={item.title}
                                 imageUrl={item.featuredImage}
                                 data={item}

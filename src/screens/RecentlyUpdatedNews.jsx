@@ -54,6 +54,7 @@ const RecentlyUpdatedNews = () => {
                 <CategoryUnderline
                     name="Recent"
                     label={categoryName ? `${categoryName} - नुकतेच अद्यतनित` : "नुकतेच अद्यतनित बातम्या"}
+                    viewAll={false}
                 />
                 <p className="text-gray-600 mt-2">
                     {categoryName
@@ -74,8 +75,6 @@ const RecentlyUpdatedNews = () => {
                             <StandardCard
                                 key={item.id}
                                 layout="col"
-                                category={getCategoryNames(item.categoryIds, categories)}
-                                categoryNameEnglish={getCategoryNamesEnglish(item.categoryIds, categories)}
                                 headline={item.title}
                                 imageUrl={item.featuredImage}
                                 data={item}

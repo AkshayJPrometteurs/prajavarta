@@ -1,10 +1,10 @@
-import DistrictNews from "@/screens/DistrictNews";
+import AllNews from "@/screens/AllNews";
 
 export const metadata = {
-    title: 'शहरांनुसार बातम्या | प्रजावार्ता',
-    description: 'महाराष्ट्रातील विविध शहरे आणि जिल्ह्यांतील ताज्या घडामोडी आणि बातम्या.',
+    title: 'सर्व बातम्या | प्रजावार्ता',
+    description: 'महाराष्ट्रातील सर्वात ताज्या आणि महत्वाच्या बातम्या.',
 }
 
 export default function AllNewsPage() {
-    return <DistrictNews />;
+    return <AllNews />;
 }

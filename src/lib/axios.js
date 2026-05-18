@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie'
 import axios from 'axios'
-import { AUTH_COOKIE_NAME, ADMIN_AUTH_COOKIE_NAME } from './auth-cookie'
+import { AUTH_COOKIE_NAME, ADMIN_AUTH_COOKIE_NAME, AUTHOR_AUTH_COOKIE_NAME } from './auth-cookie'
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
@@ -14,9 +14,12 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
     (config) => {
         const isAdmin = config.url.includes('/admin')
+        const isAuthor = config.url.includes('/author')
         const token = isAdmin 
             ? Cookies.get(ADMIN_AUTH_COOKIE_NAME)
-            : Cookies.get(AUTH_COOKIE_NAME)
+            : isAuthor
+                ? Cookies.get(AUTHOR_AUTH_COOKIE_NAME)
+                : Cookies.get(AUTH_COOKIE_NAME)
         if (token) {
             config.headers.Authorization = `Bearer ${token}`
         }

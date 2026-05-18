@@ -8,14 +8,23 @@ import AdminLayout from '@/layout/AdminLayout'
 import Pagination from '@/components/ui/Pagination'
 import axiosInstance from '@/lib/axios'
 import useDebounce from '@/hooks/useDebounce'
-
-const tabs = [
-    { label: 'Admin News', value: 'ADMIN' },
-    { label: 'Reporter News', value: 'REPORTER' },
-    { label: 'Pending Reporter News', value: 'PENDING_REPORTER' }
-]
+import { useReduxAuth } from '@/hooks/useReduxAuth'
 
 export default function NewsListingScreen() {
+    const { user } = useReduxAuth()
+
+    let tabs = [];
+
+    if (user?.role === 'ADMIN') {
+        tabs = [
+            { label: 'Admin News', value: 'ADMIN' },
+            { label: 'Reporter News', value: 'REPORTER' },
+            { label: 'Pending Reporter News', value: 'PENDING_REPORTER' }
+        ];
+    } else {
+        tabs = [{ label: 'My News', value: 'REPORTER' }]
+    }
+
     const [state, setState] = useState({
         news: [],
         categories: [],
@@ -66,7 +75,9 @@ export default function NewsListingScreen() {
                 ...(state.categoryId !== 'all' && { categoryId: state.categoryId })
             })
 
-            const response = await axiosInstance.get(`/admin/news?${params}`)
+            const endpoint = user?.role === 'ADMIN' ? '/admin/news' : '/author/news'
+
+            const response = await axiosInstance.get(`${endpoint}?${params}`)
 
             if (response.data.success) {
                 updateState({
@@ -125,7 +136,8 @@ export default function NewsListingScreen() {
         }
 
         try {
-            const response = await axiosInstance.patch('/admin/news', {
+            const endpoint = user?.role === 'ADMIN' ? '/admin/news' : '/author/news'
+            const response = await axiosInstance.patch(endpoint, {
                 ids: state.selectedIds,
                 action: state.bulkAction
             })
@@ -142,7 +154,8 @@ export default function NewsListingScreen() {
 
     const handleToggleStatus = async (item) => {
         try {
-            const response = await axiosInstance.patch('/admin/news', {
+            const endpoint = user?.role === 'ADMIN' ? '/admin/news' : '/author/news'
+            const response = await axiosInstance.patch(endpoint, {
                 ids: [item.id],
                 isActive: !item.isActive
             })
@@ -165,13 +178,15 @@ export default function NewsListingScreen() {
 
         try {
             if (type === 'single') {
-                const response = await axiosInstance.delete(`/admin/news?id=${id}`)
+                const endpoint = user?.role === 'ADMIN' ? '/admin/news' : '/author/news'
+                const response = await axiosInstance.delete(`${endpoint}?id=${id}`)
                 if (response.data.success) {
                     toast.success('News deleted successfully')
                     fetchNews()
                 }
             } else if (type === 'bulk') {
-                const response = await axiosInstance.patch('/admin/news', {
+                const endpoint = user?.role === 'ADMIN' ? '/admin/news' : '/author/news'
+                const response = await axiosInstance.patch(endpoint, {
                     ids: state.selectedIds,
                     action: 'delete'
                 })
@@ -206,7 +221,7 @@ export default function NewsListingScreen() {
                                 />
                             </label>
                             <Link
-                                href="/admin/news/add"
+                                href={user?.role === 'ADMIN' ? '/admin/news/create' : '/author/news/create'}
                                 className="btn btn-primary rounded-full gap-2"
                             >
                                 <Plus size={18} />
@@ -387,7 +402,7 @@ export default function NewsListingScreen() {
                                                         data-tip="Edit"
                                                     >
                                                         <Link
-                                                            href={`/admin/news/${item.id}/edit`}
+                                                            href={user?.role === 'ADMIN' ? `/admin/news/${item.id}/edit` : `/author/news/${item.id}/edit`}
                                                             className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm transition-transform hover:scale-110"
                                                         >
                                                             <Edit2 size={16} className="text-[#1f4e78]" />

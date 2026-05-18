@@ -66,15 +66,17 @@ const ArticleSidebar = ({ trending = [], mostRead = [] }) => {
                     <CategoryUnderline name="Maharashtra" label="मिनी ट्रेंडिंग" url="/mini-trending" />
 
                     <ol className="list-none m-0 p-0">
-                        {trending.map((item, i) => (
-                            <CompactListItem 
-                                key={i} 
-                                n={i + 1} 
-                                headline={item.title} 
-                                category={item.category?.name}
-                                slug={item.slug} 
-                            />
-                        ))}
+                        {trending.map((item, i) => {
+                            return (
+                                <CompactListItem
+                                    key={i}
+                                    n={i + 1}
+                                    headline={item.title}
+                                    category={item.category?.name}
+                                    slug={item.slug}
+                                />
+                            )
+                        })}
                     </ol>
                 </div>
             )}

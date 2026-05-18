@@ -11,13 +11,6 @@ const SecondaryStories = ({ data }) => {
 					return (
 						<div key={content?.id}>
 							<StandardCard
-								category={
-									content?.categoryIds
-										? String(content?.categoryIds)
-											.split(',')
-											.map(id => id.trim())
-										: []
-								}
 								headline={content?.title}
 								layout="col"
 								imageUrl={content?.featuredImage}

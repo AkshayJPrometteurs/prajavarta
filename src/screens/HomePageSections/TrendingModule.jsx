@@ -11,7 +11,13 @@ import { useAuth } from "@/contexts/AuthContext"
 // Heat gradient: rank 1 = hottest red → rank 5 = coolest blue
 const RANK_COLORS = ['#B71C1C', '#E64A19', '#F9A825', '#2E7D32', '#1565C0']
 
-const TrendingModule = ({ items, label = 'ट्रेंडिंग', isBgColor, url = "/trending" }) => {
+const TrendingModule = ({ 
+	items,
+	label = 'ट्रेंडिंग',
+	isBgColor,
+	url = "/trending",
+	viewAll = true,
+}) => {
 	const { categories } = useAuth();
 	return (
 		<section className={isBgColor ? 'bg-gray-100 p-4 sm:p-6' : ''}>
@@ -19,6 +25,7 @@ const TrendingModule = ({ items, label = 'ट्रेंडिंग', isBgColo
 				name="Maharashtra"
 				label={label}
 				url={url}
+				viewAll={viewAll}
 			/>
 
 			<ol className="list-none m-0 p-0">
@@ -68,6 +75,7 @@ const TrendingModule = ({ items, label = 'ट्रेंडिंग', isBgColo
 									width={64}
 									height={64}
 									className="w-16 sm:w-20 h-12 sm:h-14 shrink-0"
+									style={{ height: 64 }}
 								/>
 							</Link>
 						</li>

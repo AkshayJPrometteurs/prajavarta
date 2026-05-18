@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import axiosInstance from '@/lib/axios'
 import Cookies from 'js-cookie'
-import { AUTH_COOKIE_NAME, ADMIN_AUTH_COOKIE_NAME } from '@/lib/auth-cookie'
+import { AUTH_COOKIE_NAME, ADMIN_AUTH_COOKIE_NAME, AUTHOR_AUTH_COOKIE_NAME } from '@/lib/auth-cookie'
 
 const authCookieOptions = {
 	expires: 7,
@@ -28,10 +28,12 @@ export const loginUser = createAsyncThunk(
 
 export const adminLoginUser = createAsyncThunk(
 	'auth/adminLogin',
-	async ({ email, password }, { rejectWithValue }) => {
+	async ({ email, password, type }, { rejectWithValue }) => {
 		try {
-			const result = await axiosInstance.post('/admin/auth/login', { email, password })
-			Cookies.set(ADMIN_AUTH_COOKIE_NAME, result.data.token, authCookieOptions)
+			const endpoint = type === 'author' ? '/author/auth/login' : '/admin/auth/login'
+			const result = await axiosInstance.post(endpoint, { email, password })
+			const cookieName = type === 'author' ? AUTHOR_AUTH_COOKIE_NAME : ADMIN_AUTH_COOKIE_NAME
+			Cookies.set(cookieName, result.data.token, authCookieOptions)
 			if (result.status === 200) {
 				return result.data
 			}
@@ -68,6 +70,22 @@ export const checkAuth = createAsyncThunk(
 			}
 			return rejectWithValue('Not authenticated')
 		} catch (error) {
+			return rejectWithValue(error.response?.data?.error || 'Auth check failed')
+		}
+	}
+)
+
+export const checkAuthAuthor = createAsyncThunk(
+	'auth/checkAuthAuthor',
+	async (_, { rejectWithValue }) => {
+		try {
+			const result = await axiosInstance.get('/author/auth/profile')
+			if (result.status === 200) {
+				return result.data.user
+			}
+			return rejectWithValue('Not authenticated')
+		} catch (error) {
+			Cookies.remove(AUTHOR_AUTH_COOKIE_NAME)
 			return rejectWithValue(error.response?.data?.error || 'Auth check failed')
 		}
 	}

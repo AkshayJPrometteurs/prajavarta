@@ -70,8 +70,6 @@ const EvergreenNews = () => {
                             <StandardCard
                                 key={item.id}
                                 layout="col"
-                                category={getCategoryNames(item.categoryIds, categories)}
-                                categoryNameEnglish={getCategoryNamesEnglish(item.categoryIds, categories)}
                                 headline={item.title}
                                 imageUrl={item.featuredImage}
                                 data={item}

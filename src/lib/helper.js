@@ -115,7 +115,18 @@ const marathiMonths = [
 
 const marathiNumbers = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९']
 
-function convertToMarathiNumber(value) {
+function convertToMarathiNumberInFun(value) {
+    return String(value)
+        .split('')
+        .map(char =>
+            /\d/.test(char)
+                ? marathiNumbers[Number(char)]
+                : char
+        )
+        .join('')
+}
+
+export function convertToMarathiNumber(value) {
     return String(value)
         .split('')
         .map(char =>
@@ -131,28 +142,39 @@ export function formatMarathiDate(timestamp) {
 
     const date = new Date(timestamp)
 
-    const day = convertToMarathiNumber(date.getDate())
+    const day = convertToMarathiNumberInFun(date.getDate())
     const month = marathiMonths[date.getMonth()]
 
     return `${day} ${month}`
 }
 
+export function formatMarathiDateFull(timestamp) {
+    if (!timestamp) return ''
+
+    const date = new Date(timestamp)
+
+    const day = convertToMarathiNumberInFun(date.getDate())
+    const month = marathiMonths[date.getMonth()]
+    const year = convertToMarathiNumberInFun(date.getFullYear())
+
+    return `${day} ${month}, ${year}`
+}
+
 // utils/getCategoryNames.js
 
 export function getCategoryNames(categoryIds, categories = []) {
-    if (!categoryIds || !categories || !categories.length) {
+    if (!categoryIds || !categories?.length) {
         return []
     }
 
-    // Convert string to array
     const ids = Array.isArray(categoryIds)
         ? categoryIds
         : String(categoryIds)
-            .split(',')
-            .map(id => id.trim())
+              .split(',')
+              .map((id) => id.trim())
+              .filter(Boolean)
 
-    // Find matching category names
-    return ids
+    const names = ids
         .map((id) => {
             const category = categories.find(
                 (cat) => String(cat.id) === String(id)
@@ -161,28 +183,32 @@ export function getCategoryNames(categoryIds, categories = []) {
             return category ? category.name : null
         })
         .filter(Boolean)
+
+    return ids.length === 1 ? names[0] || '' : names
 }
 
 export function getCategoryNamesEnglish(categoryIds, categories = []) {
-    if (!categoryIds || !categories || !categories.length) {
+    console.log('getCategoryNamesEnglish called with:', { categoryIds })
+    if (!categoryIds || !categories?.length) {
         return []
     }
 
-    // Convert string to array
     const ids = Array.isArray(categoryIds)
         ? categoryIds
         : String(categoryIds)
-            .split(',')
-            .map(id => id.trim())
+              .split(',')
+              .map((id) => id.trim())
+              .filter(Boolean)
 
-    // Find matching category names
-    return ids
+    const names = ids
         .map((id) => {
             const category = categories.find(
                 (cat) => String(cat.id) === String(id)
             )
 
-            return category ? category.nameEnglish.toLowerCase() : null
+            return category?.nameEnglish?.toLowerCase() || null
         })
         .filter(Boolean)
+
+    return ids.length === 1 ? names[0] || '' : names
 }

@@ -1,29 +1,36 @@
 "use client"
 
-import React, { memo } from "react";
+import React, { useEffect, useState, memo } from "react";
 import Ad from "@/components/Ad";
 import Newsletter from "@/components/Newsletter";
 import CategoryUnderline from "@/components/ui/CategoryUnderline";
 import CompactListItem from "@/components/ui/CompactListItem";
 import { useScreenSize } from "@/hooks/useScreenSize";
+import Link from "next/link";
+import axiosInstance from "@/lib/axios";
 
-const MINI_TRENDING = [
-    'मनोज जरांगे पाटील आज औरंगाबादेत उपोषणाला बसणार',
-    'गणेशोत्सव २०२६ साठी मंडळांची तयारी सुरू, परवानग्या जलद',
-    'नवीन MPSC परीक्षा वेळापत्रक जाहीर, मे महिन्यात मुख्य परीक्षा',
-    'शिवसेना (UBT) विजय सत्रात ठाकरेंचे आक्रमक भाषण',
-    'महावितरणच्या वीजबिलात ८% वाढीचा प्रस्ताव',
-]
-
-const PUNE_UPDATES = [
-    'हिंजवडीत वाहतूककोंडी कमी करण्यासाठी नवा फ्लायओव्हर मंजूर',
-    'पुणे विमानतळावर तीन नवीन आंतरराष्ट्रीय उड्डाणे सुरू',
-    'कात्रज-कोंढवा रस्त्याचे काम मार्चपर्यंत पूर्ण',
-]
-
-const MainPageSidebar = ({data = null}) => {
+const MainPageSidebar = ({ data = null }) => {
     const { screenWidth } = useScreenSize();
-    
+    const [puneUpdates, setPuneUpdates] = useState([]);
+
+    const getPuneUpdates = async () => {
+        try {
+            const response = await axiosInstance.get('/specific-city-wise-news', {
+                params: { district: 'Pune', limit: 3 }
+            });
+
+            if (response.data.success) {
+                setPuneUpdates(response.data.data.news || []);
+            }
+        } catch (error) {
+            console.error('Error fetching Pune updates:', error);
+        }
+    }
+
+    useEffect(() => {
+        getPuneUpdates();
+    }, []);
+
     return (
         <aside className="space-y-4">
             {/* Fold 1: 300×250 */}
@@ -37,11 +44,24 @@ const MainPageSidebar = ({data = null}) => {
             />
 
             <div style={{ padding: 20, border: '1px solid var(--border-default)' }}>
-                <CategoryUnderline name="Maharashtra" label="मिनी ट्रेंडिंग" url="/mini-trending" />
+                <CategoryUnderline
+                    name="Maharashtra"
+                    label="मिनी ट्रेंडिंग"
+                    url="/mini-trending"
+                />
                 <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                    {data?.mini_trending_news?.map((h, i) => (
-                        <CompactListItem key={i} n={i + 1} headline={h?.title} />
-                    ))}
+                    {data?.mini_trending_news?.map((h, i) => {
+                        const isLast = i === data.mini_trending_news.length - 1
+                        return (
+                            <CompactListItem
+                                key={i}
+                                n={i + 1}
+                                headline={h?.title}
+                                slug={h?.slug}
+                                isLast={isLast}
+                            />
+                        )
+                    })}
                 </ol>
             </div>
 
@@ -60,11 +80,24 @@ const MainPageSidebar = ({data = null}) => {
             <div style={{ padding: 20, border: '1px solid var(--border-default)' }}>
                 <CategoryUnderline name="Pune" label="पुण्यातील अद्यतन" url="/city-updates?district=Pune" />
                 <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {PUNE_UPDATES.map((h, i) => (
-                        <li key={i} className="mr" style={{ fontSize: 14, lineHeight: 1.4, color: 'var(--text-primary)', borderBottom: '1px solid var(--border-default)', paddingBottom: 12 }}>
-                            {h}
-                        </li>
-                    ))}
+                    {puneUpdates.map((item, i) => {
+                        return (
+                            <Link href={`article/${item?.slug}`} key={i}>
+                                <li
+                                    className="mr"
+                                    style={{
+                                        fontSize: 14,
+                                        lineHeight: 1.4,
+                                        color: 'var(--text-primary)',
+                                        borderBottom: '1px solid var(--border-default)',
+                                        paddingBottom: 12
+                                    }}
+                                >
+                                    {item?.title || item}
+                                </li>
+                            </Link>
+                        )
+                    })}
                 </ul>
             </div>
 

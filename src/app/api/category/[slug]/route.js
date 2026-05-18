@@ -9,107 +9,138 @@ export async function GET(request, { params }) {
     try {
         const { slug } = await params
 
-        // Find category by name or slug (params.slug is the dynamic segment)
+        console.log('Received slug:', slug)
+
+        // Find category using slug or name
         const category = await prisma.category.findFirst({
             where: {
                 OR: [
                     { name: decodeURIComponent(slug) },
-                    { slug: slug }
+                    { nameEnglish: decodeURIComponent(slug) },
                 ]
             }
         })
 
         if (!category) {
             return NextResponse.json(
-                { success: false, error: 'Category not found' },
-                { status: 404 }
+                {
+                    success: false,
+                    error: 'Category not found'
+                },
+                {
+                    status: 404
+                }
             )
         }
 
-        // Get all news for this category (including multiple categories)
-        const allCategoryNews = await prisma.news.findMany({
-            where: { isActive: true },
-            orderBy: { publishedDate: 'desc' },
+        // Fetch all active news
+        const allNews = await prisma.news.findMany({
+            where: {
+                isActive: true,
+                OR: [{
+                    categoryIds: {
+                        contains: String(category.id)
+                    }
+                }]
+            },
+            orderBy: {
+                publishedDate: 'desc'
+            },
             take: 500,
-            include: { 
+            include: {
                 category: true,
                 district: true,
                 location: true
             }
         })
 
-        // Filter news for this category
-        const categoryNews = allCategoryNews.filter((news) => {
-            // Single category
-            if (news.categoryId === category.id) {
-                return true
-            }
+        // Exact category match
+        const categoryNews = allNews.filter((news) => {
 
-            // Multiple categories
-            if (news.categoryIds) {
-                const ids = String(news.categoryIds)
-                    .split(',')
-                    .map(id => id.trim())
+            // categoryIds example:
+            // "8"
+            // "8,7,5"
+            // "2,3,4"
 
-                return ids.includes(String(category.id))
-            }
+            if (!news.categoryIds) return false
 
-            return false
+            const idsArray = String(news.categoryIds)
+                .split(',')
+                .map(id => id.trim())
+                .filter(Boolean)
+
+            return idsArray.includes(String(category.id))
         })
 
-        // 1. Latest News (first 6)
+        // Latest News
         const latestNews = categoryNews.slice(0, 6)
 
-        // 2. Most Read News (by view count, shuffled)
-        const mostReadNews = shuffleArray(categoryNews)
+        // Most Read News
+        const mostReadNews = [...categoryNews]
             .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
             .slice(0, 5)
 
-        // 3. Trending News for this category
+        // Trending News
         const trendingNews = categoryNews
             .filter(news => news.isTrendingNews)
             .slice(0, 5)
 
-        // 4. District-wise News (select news from 3 unique districts)
+        // District-wise News
         const districtMap = new Map()
+
         categoryNews.forEach(news => {
-            if (news.districtId && !districtMap.has(news.districtId)) {
+            if (
+                news.districtId &&
+                !districtMap.has(news.districtId)
+            ) {
                 districtMap.set(news.districtId, news)
             }
         })
+
         const locationNews = Array.from(districtMap.values()).slice(0, 3)
 
-        // 5. Evergreen Content (older news, shuffled)
+        // Evergreen News
         const evergreenNews = shuffleArray(categoryNews)
             .filter(news => {
                 const publishedDate = new Date(news.publishedDate)
+
                 const threeMonthsAgo = new Date()
-                threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
+                threeMonthsAgo.setMonth(
+                    threeMonthsAgo.getMonth() - 3
+                )
+
                 return publishedDate < threeMonthsAgo
             })
             .slice(0, 4)
 
-        // 6. Related Tags (extract from tags field)
+        // Related Tags
         const allTags = categoryNews
             .map(news => news.tags)
             .filter(Boolean)
-            .join(', ')
+            .join(',')
             .split(',')
             .map(tag => tag.trim())
             .filter(Boolean)
 
         const uniqueTags = [...new Set(allTags)].slice(0, 14)
 
-        // 7. Get random Subdivisions for the "उप-विभाग" section
-        const allSubdivisions = await prisma.subdivision.findMany({
-            where: { isActive: true },
-            take: 100
-        })
-        const randomSubdivisions = shuffleArray(allSubdivisions).slice(0, 6)
+        // Random Subdivisions
+        const allSubdivisions =
+            await prisma.subdivision.findMany({
+                where: {
+                    isActive: true
+                },
+                take: 100
+            })
 
-        // 8. Category stats
+        const randomSubdivisions =
+            shuffleArray(allSubdivisions).slice(0, 6)
+
+        // Stats
         const totalNews = categoryNews.length
-        const lastUpdated = categoryNews[0]?.createdAt || null
+
+        const lastUpdated =
+            categoryNews[0]?.createdAt || null
 
         return NextResponse.json({
             success: true,
@@ -122,13 +153,21 @@ export async function GET(request, { params }) {
                     updatedAt: category.updatedAt,
                     createdAt: category.createdAt
                 },
+
                 latest_news: latestNews,
+
                 most_read_news: mostReadNews,
+
                 trending_news: trendingNews,
+
                 location_news: locationNews,
+
                 evergreen_news: evergreenNews,
+
                 related_tags: uniqueTags,
+
                 subdivisions: randomSubdivisions,
+
                 stats: {
                     total_news: totalNews,
                     last_updated: lastUpdated
@@ -137,7 +176,11 @@ export async function GET(request, { params }) {
         })
 
     } catch (error) {
-        console.error('Error fetching category data:', error)
+
+        console.error(
+            'Error fetching category data:',
+            error
+        )
 
         return NextResponse.json(
             {

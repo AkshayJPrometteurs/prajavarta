@@ -21,7 +21,11 @@ const MainPage = () => {
     const [pageData, setPageData] = useState(null);
     const [categoriesWiseData, setCategoriesWiseData] = useState([])
     const [recommendedData, setRecommendedData] = useState([])
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
     const getMainPage = async () => {
+        setLoading(true);
         try {
             const response = await axiosInstance.get(`/landing_page`);
             if (response?.data?.success) {
@@ -45,20 +49,48 @@ const MainPage = () => {
             }
         } catch (error) {
             console.error("Error fetching landing page:", error);
+            setError("मुख्य पृष्ठ लोड करण्यात अडचण आली आहे.")
             return null;
+        } finally {
+            setLoading(false);
         }
     }
 
     useEffect(() => { getMainPage() }, [])
 
+    if (loading) {
+        return (
+            <MainLayout isBannerAdvertisement>
+                <div className="flex items-center justify-center py-20 min-h-[60vh]">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+                </div>
+            </MainLayout>
+        );
+    }
+
+    if (error || !pageData) {
+        return (
+            <MainLayout isBannerAdvertisement>
+                <div className="text-center py-20 min-h-[60vh]">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">{error || "बातमी सापडली नाही."}</h2>
+                    <Link href="/" className="text-orange-600 font-semibold hover:underline">
+                        मुख्यपृष्ठावर परत जा
+                    </Link>
+                </div>
+            </MainLayout>
+        );
+    }
+
     return (
         <MainLayout isBannerAdvertisement>
             <section>
-                <SectionLayout sidebar={<MainPageSidebar data={pageData} />}>
+                <SectionLayout
+                    sidebar={
+                        <MainPageSidebar data={pageData} />
+                    }
+                >
                     {/* Hero story */}
                     <HeroCard
-                        category={getCategoryNames(pageData?.one_latest_news?.[0]?.categoryIds, categories) || []}
-                        categoryNameEnglish={getCategoryNamesEnglish(pageData?.one_latest_news?.[0]?.categoryIds, categories) || []}
                         headline={pageData?.one_latest_news[0]?.title}
                         subtitle={pageData?.one_latest_news[0]?.summary}
                         redirectUrl={`/article/${pageData?.one_latest_news?.[0]?.slug}`}
@@ -73,8 +105,6 @@ const MainPage = () => {
                             return (
                                 <div key={content?.id} className={isLast ? 'block md:hidden' : ''}>
                                     <StandardCard
-                                        category={getCategoryNames(content?.categoryIds, categories) || ""}
-                                        categoryNameEnglish={getCategoryNamesEnglish(content?.categoryIds, categories) || ""}
                                         headline={content?.title}
                                         layout="col"
                                         imageUrl={content?.featuredImage}

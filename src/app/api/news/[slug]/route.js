@@ -1,10 +1,14 @@
 import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { verifyToken } from '@/lib/auth'
+import { AUTH_COOKIE_NAME } from '@/lib/auth-cookie'
 
 export async function GET(request, { params }) {
     try {
         const { slug } = await params
-        
+        const token = request.cookies.get(AUTH_COOKIE_NAME)?.value
+        let saved = false
+
         const article = await prisma.news.findUnique({
             where: { slug },
             include: {
@@ -18,6 +22,47 @@ export async function GET(request, { params }) {
 
         if (!article) {
             return NextResponse.json({ success: false, error: 'Article not found' }, { status: 404 })
+        }
+
+        const categoryIds = article.categoryIds
+            ? String(article.categoryIds)
+                .split(',')
+                .map((id) => Number(id.trim()))
+                .filter((id) => !Number.isNaN(id))
+            : []
+
+        let categoryList = []
+        if (categoryIds.length) {
+            const categories = await prisma.category.findMany({
+                where: {
+                    id: { in: categoryIds }
+                }
+            })
+
+            categoryList = categoryIds
+                .map((id) => categories.find((category) => category.id === id))
+                .filter(Boolean)
+                .map((category) => ({
+                    id: category.id,
+                    name: category.name,
+                    nameEnglish: category.nameEnglish,
+                    slug: category.slug
+                }))
+        }
+
+        if (token) {
+            const decoded = verifyToken(token)
+            if (decoded) {
+                const savedArticle = await prisma.savedArticle.findUnique({
+                    where: {
+                        userId_newsId: {
+                            userId: decoded.userId,
+                            newsId: article.id,
+                        },
+                    },
+                })
+                saved = Boolean(savedArticle)
+            }
         }
 
         // Increment view count
@@ -64,10 +109,12 @@ export async function GET(request, { params }) {
         return NextResponse.json({
             success: true,
             data: {
+                categoryList,
                 article,
                 relatedNews,
                 trendingNews,
-                mostReadNews
+                mostReadNews,
+                saved
             }
         })
 
