@@ -54,6 +54,7 @@ const MiniTrendingNews = () => {
                 <CategoryUnderline
                     name="MiniTrending"
                     label={categoryName ? `${categoryName} - मिनी ट्रेंडिंग` : "मिनी ट्रेंडिंग बातम्या"}
+                    viewAll={false}
                 />
                 <p className="text-gray-600 mt-2">
                     {categoryName
@@ -74,8 +75,6 @@ const MiniTrendingNews = () => {
                             <StandardCard
                                 key={item.id}
                                 layout="col"
-                                category={getCategoryNames(item.categoryIds, categories)}
-                                categoryNameEnglish={getCategoryNamesEnglish(item.categoryIds, categories)}
                                 headline={item.title}
                                 imageUrl={item.featuredImage}
                                 data={item}

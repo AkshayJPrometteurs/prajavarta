@@ -7,17 +7,31 @@ datasource db {
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  name         String
-  role         UserRole  @default(USER)
-  isActive     Boolean   @default(true) @map("is_active")
-  lastLogin    DateTime? @map("last_login")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  news         News[]
-  followedAuthors AuthorFollower[]
+  id              Int              @id @default(autoincrement())
+  email           String           @unique
+  passwordHash    String           @map("password_hash")
+  name            String?
+  nameEnglish     String?          @map("name_english")
+  role            UserRole         @default(USER)
+  designation     String?
+  experience      String?
+  bio             String?          @db.Text
+  image           String?
+  twitter         String?
+  linkedin        String?
+  isActive        Boolean          @default(true) @map("is_active")
+  lastLogin       DateTime?        @map("last_login")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  news            News[]
+  // news assigned to author
+  authoredNews    News[]           @relation("NewsAuthor")
+  // users following authors
+  followedAuthors AuthorFollower[] @relation("UserFollowers")
+
+  // users who follow this author
+  authorFollowers AuthorFollower[] @relation("AuthorFollowers")
+  savedArticles   SavedArticle[]
 
   @@map("users")
 }
@@ -120,34 +134,25 @@ model Location {
 }
 
 model News {
-  id        Int           @id @default(autoincrement())
-  newsType  String        @default("Image") @map("news_type")
-  userId    Int?          @map("user_id")
-  ownerType NewsOwnerType @default(ADMIN) @map("owner_type")
-
-  title       String?
-  slug        String? @unique @db.VarChar(500)
-  summary     String? @db.Text
-  description String? @db.Text
-
-  language String @default("Marathi")
-
-  featuredImage String? @map("featured_image")
-  galleryImage  String? @map("gallery_image")
-
-  newsUrl String? @map("news_url")
-  tags    String?
-
-  sendNotification Boolean @default(false) @map("send_notification")
-
-  publishedDate DateTime? @map("published_date")
-
-  isActive Boolean @default(true) @map("is_active")
-
-  viewCount Int @default(0) @map("view_count")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  id               Int           @id @default(autoincrement())
+  newsType         String        @default("Image") @map("news_type")
+  userId           Int?          @map("user_id")
+  ownerType        NewsOwnerType @default(ADMIN) @map("owner_type")
+  title            String?
+  slug             String?       @unique @db.VarChar(500)
+  summary          String?       @db.Text
+  description      String?       @db.Text
+  language         String        @default("Marathi")
+  featuredImage    String?       @map("featured_image")
+  galleryImage     String?       @map("gallery_image")
+  newsUrl          String?       @map("news_url")
+  tags             String?
+  sendNotification Boolean       @default(false) @map("send_notification")
+  publishedDate    DateTime?     @map("published_date")
+  isActive         Boolean       @default(true) @map("is_active")
+  viewCount        Int           @default(0) @map("view_count")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @default(now()) @updatedAt @map("updated_at")
 
   // MULTIPLE CATEGORY IDS
   categoryIds String? @map("category_ids")
@@ -173,18 +178,35 @@ model News {
   category      Category?          @relation(fields: [categoryId], references: [id])
   categoryId    Int?
   location      Location?          @relation(fields: [locationId], references: [id])
-  author        Author?            @relation(fields: [authorId], references: [id])
   authorId      Int?               @map("author_id")
+
+  author  User?          @relation("NewsAuthor", fields: [authorId], references: [id])
+  savedBy SavedArticle[]
 
   @@index([userId], map: "news_user_id_fkey")
   @@index([districtId], map: "news_district_id_fkey")
   @@index([subdivisionId], map: "news_subdivision_id_fkey")
   @@index([tehsilId], map: "news_tehsil_id_fkey")
+  @@index([authorId], map: "news_author_id_fkey")
   @@map("news")
+}
+
+model SavedArticle {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  newsId    Int      @map("news_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+  news News @relation(fields: [newsId], references: [id])
+
+  @@unique([userId, newsId])
+  @@map("saved_articles")
 }
 
 enum UserRole {
   ADMIN
+  AUTHOR
   USER
   ADMANAGER
 }
@@ -217,34 +239,14 @@ model Newsletter {
   @@map("newsletters")
 }
 
-model Author {
-  id          Int      @id @default(autoincrement())
-  name        String
-  nameEnglish String?  @map("name_english")
-  role        String?
-  experience  String?
-  bio         String?  @db.Text
-  image       String?
-  twitter     String?
-  linkedin    String?
-  email       String?
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  news        News[]
-  followers   AuthorFollower[]
-
-  @@map("authors")
-}
-
 model AuthorFollower {
   id        Int      @id @default(autoincrement())
   userId    Int      @map("user_id")
   authorId  Int      @map("author_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  author Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  user   User @relation("UserFollowers", fields: [userId], references: [id], onDelete: Cascade)
+  author User @relation("AuthorFollowers", fields: [authorId], references: [id], onDelete: Cascade)
 
   @@unique([userId, authorId])
   @@map("author_followers")

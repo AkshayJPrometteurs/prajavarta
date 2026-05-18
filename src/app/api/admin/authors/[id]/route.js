@@ -4,8 +4,8 @@ import { NextResponse } from 'next/server'
 export async function GET(request, { params }) {
     try {
         const { id } = await params
-        const author = await prisma.author.findUnique({
-            where: { id: parseInt(id) }
+        const author = await prisma.user.findUnique({
+            where: { id: parseInt(id), role: 'AUTHOR' },
         })
 
         if (!author) {
@@ -22,10 +22,22 @@ export async function PUT(request, { params }) {
     try {
         const { id } = await params
         const body = await request.json()
+        const { name, nameEnglish, role, experience, bio, image, twitter, linkedin, email, isActive } = body
         
-        const author = await prisma.author.update({
-            where: { id: parseInt(id) },
-            data: body
+        const author = await prisma.user.update({
+            where: { id: parseInt(id), role: 'AUTHOR' },
+            data: {
+                name,
+                nameEnglish,
+                designation: role,
+                experience,
+                bio,
+                image,
+                twitter,
+                linkedin,
+                email,
+                isActive
+            }
         })
 
         return NextResponse.json({ success: true, data: author })
@@ -45,15 +57,15 @@ export async function DELETE(request, { params }) {
 
         if (newsCount > 0) {
             // Soft delete or block hard delete
-            await prisma.author.update({
-                where: { id: parseInt(id) },
+            await prisma.user.update({
+                where: { id: parseInt(id), role: 'AUTHOR' },
                 data: { isActive: false }
             })
             return NextResponse.json({ success: true, message: 'Author deactivated as they have associated news.' })
         }
 
-        await prisma.author.delete({
-            where: { id: parseInt(id) }
+        await prisma.user.delete({
+            where: { id: parseInt(id), role: 'AUTHOR' }
         })
 
         return NextResponse.json({ success: true, message: 'Author deleted successfully' })

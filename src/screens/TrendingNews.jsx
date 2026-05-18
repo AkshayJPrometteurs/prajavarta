@@ -54,6 +54,7 @@ const TrendingNews = () => {
                 <CategoryUnderline
                     name="Trending"
                     label={categoryName ? `${categoryName} - मधील ट्रेंडिंग` : "ट्रेंडिंग बातम्या"}
+                    viewAll={false}
                 />
                 <p className="text-gray-600 mt-2">
                     {categoryName
@@ -74,8 +75,6 @@ const TrendingNews = () => {
                             <StandardCard
                                 key={item.id}
                                 layout="col"
-                                category={getCategoryNames(item.categoryIds, categories)}
-                                categoryNameEnglish={getCategoryNamesEnglish(item.categoryIds, categories)}
                                 headline={item.title}
                                 imageUrl={item.featuredImage}
                                 data={item}

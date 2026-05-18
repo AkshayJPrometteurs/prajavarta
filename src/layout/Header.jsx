@@ -1,40 +1,41 @@
 "use client";
 
+import { memo, useState, useEffect } from "react";
+import Link from "next/link";
+
 import Logo from "@/components/Logo";
 import { HamburgerIcon, SearchIcon } from "@/components/ui/Icons";
-import Link from "next/link";
-import { useState } from "react";
 import { useReduxAuth } from "@/hooks/useReduxAuth";
 import { useAuth } from "@/contexts/AuthContext";
+import axiosInstance from "@/lib/axios";
+import { COMPANY_LINKS } from "@/contants/HeaderContants";
+import CustomImage from "@/components/ui/CustomImage";
 
-const MEGA_NEWS = [
-    { c: 'महाराष्ट्र', h: 'राज्यात कांद्याच्या भावात मोठी घसरण, शेतकऱ्यांचे आंदोलन', color: '#c0392b' },
-    { c: 'राजकारण', h: 'विधानसभेत सत्तासंघर्ष: हालचालींना वेग', color: '#8B0000' },
-    { c: 'क्रीडा', h: 'रोहित शर्मा कसोटी संघातून निवृत्त', color: '#1565C0' },
-    { c: 'व्यवसाय', h: 'सेन्सेक्सने ८०,००० चा ऐतिहासिक टप्पा ओलांडला', color: '#1B5E20' },
-    { c: 'पुणे', h: 'पुण्यात मेट्रोच्या तिसऱ्या टप्प्याचे काम सुरू', color: '#E65100' },
-    { c: 'मनोरंजन', h: 'रितेश देशमुखचा नवा चित्रपट दिवाळीला प्रदर्शित', color: '#6A1B9A' },
-];
-
-const COMPANY_LINKS = [
-    { label: 'आमच्याबद्दल', href: `${process.env.NEXT_PUBLIC_APP_URL}company/about-us` },
-    { label: 'आमचे लेखक', href: `${process.env.NEXT_PUBLIC_APP_URL}author/सुनील देशमुख` },
-    { label: 'संपर्क करा', href: `${process.env.NEXT_PUBLIC_APP_URL}company/contact-us` },
-    { label: '—', href: '#', divider: true },
-    { label: 'संपादकीय धोरण', href: `${process.env.NEXT_PUBLIC_APP_URL}company/editorial-policy` },
-    { label: 'गोपनीयता धोरण', href: `${process.env.NEXT_PUBLIC_APP_URL}company/privacy-policy` },
-    { label: 'अटी व शर्ती', href: `${process.env.NEXT_PUBLIC_APP_URL}company/terms-and-conditions` },
-    { label: 'कुकी धोरण', href: `${process.env.NEXT_PUBLIC_APP_URL}company/cookie-policy` },
-    { label: '—', href: '#', divider: true },
-    { label: 'जाहिरात द्या', href: `${process.env.NEXT_PUBLIC_APP_URL}company/advertise` },
-];
-
-export default function Header() {
+const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [megaNews, setMegaNews] = useState([]);
+    const [loadingMega, setLoadingMega] = useState(true);
     const { user, logout } = useReduxAuth();
     const { categories } = useAuth();
     const navItems = categories;
+
+    useEffect(() => {
+        const fetchMegaNews = async () => {
+            try {
+                const response = await axiosInstance.get('/news/mega');
+                if (response.data.success) {
+                    setMegaNews(response.data.data);
+                }
+            } catch (error) {
+                console.error("Error fetching mega news:", error);
+            } finally {
+                setLoadingMega(false);
+            }
+        };
+
+        fetchMegaNews();
+    }, []);
 
     const toggleMenu = () => setIsMenuOpen((v) => !v);
     const toggleSearch = () => setIsSearchOpen((v) => !v);
@@ -153,17 +154,33 @@ export default function Header() {
                             </div>
                             <div tabIndex={0} className="dropdown-content z-200 mt-1 w-125 bg-white text-[#1a1a1a] shadow-lg border-t-[3px] border-(--brand-primary) rounded-b pb-0.5 focus:outline-none">
                                 <div className="grid grid-cols-2 gap-2.5 mb-3.5 p-4 pb-0">
-                                    {MEGA_NEWS.map((item, i) => (
-                                        <Link key={i} href="/city-wise-news" className="flex gap-2.5 items-start">
-                                            <div className="w-16 h-12 shrink-0 rounded bg-gray-200" />
-                                            <div>
-                                                <div className="text-[10px] font-bold uppercase mb-1" style={{ color: item.color }}>{item.c}</div>
-                                                <p className="text-xs font-semibold leading-[1.4] line-clamp-2">{item.h}</p>
-                                            </div>
-                                        </Link>
-                                    ))}
+                                    {!loadingMega && megaNews?.length > 0 ? (
+                                        megaNews?.map((item, i) => {
+                                            if(!item.news) return null; // skip if no news for the category
+                                            return (
+                                                <Link key={i} href={item.news ? `/article/${item.news.slug}` : `/category/${item?.category.slug}`} className="flex gap-2.5 items-start">
+                                                    {item?.news?.featuredImage && (
+                                                        <div className="w-16 h-12 shrink-0 rounded bg-gray-200 overflow-hidden">
+                                                            <CustomImage
+                                                                src={item.news.featuredImage}
+                                                                alt={item.category.name}
+                                                                className="w-full object-cover"
+                                                                style={{ height: "100%" }}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <div className="text-[10px] font-bold uppercase mb-1 text-orange-600">{item?.category?.name}</div>
+                                                        <p className="text-xs font-semibold leading-[1.4] line-clamp-2">{item?.news?.title || 'No news'}</p>
+                                                    </div>
+                                                </Link>
+                                            )
+                                        })
+                                    ) : (
+                                        <div className="col-span-2 text-center py-4 text-gray-500">लोड होत आहे...</div>
+                                    )}
                                 </div>
-                                <Link href="/city-wise-news" className="block text-center py-2.5 px-4 border-t text-[13px] font-bold text-(--brand-primary) hover:bg-orange-50">
+                                <Link href="/all-news" className="block text-center py-2.5 px-4 border-t text-[13px] font-bold text-(--brand-primary) hover:bg-orange-50">
                                     सर्व बातम्या पहा →
                                 </Link>
                             </div>
@@ -224,3 +241,5 @@ export default function Header() {
         </>
     );
 }
+
+export default memo(Header);

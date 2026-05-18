@@ -16,6 +16,7 @@ export default function AuthorFormModal({ isOpen, author, onClose, onSubmit }) {
         twitter: '',
         linkedin: '',
         email: '',
+        password: '',
         isActive: true
     })
     const [selectedFile, setSelectedFile] = useState(null)
@@ -33,6 +34,7 @@ export default function AuthorFormModal({ isOpen, author, onClose, onSubmit }) {
                 twitter: author.twitter || '',
                 linkedin: author.linkedin || '',
                 email: author.email || '',
+                password: '', // Don't prefill password
                 isActive: author.isActive ?? true
             })
         } else {
@@ -46,6 +48,7 @@ export default function AuthorFormModal({ isOpen, author, onClose, onSubmit }) {
                 twitter: '',
                 linkedin: '',
                 email: '',
+                password: '',
                 isActive: true
             })
         }
@@ -89,6 +92,7 @@ export default function AuthorFormModal({ isOpen, author, onClose, onSubmit }) {
 
             if (response.data.success) {
                 toast.success(`Author ${author ? 'updated' : 'created'} successfully`)
+                setSelectedFile(null)
                 onSubmit()
             }
         } catch (error) {
@@ -156,6 +160,14 @@ export default function AuthorFormModal({ isOpen, author, onClose, onSubmit }) {
                                     <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
                                 </label>
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                        <div className="form-control flex flex-col">
+                            <label className="label"><span className="label-text">Password</span></label>
+                            <input type="password" className="input input-bordered w-full" value={formData.password}
+                                onChange={e => setFormData({ ...formData, password: e.target.value })} placeholder="Enter password..." />
                         </div>
                     </div>
 

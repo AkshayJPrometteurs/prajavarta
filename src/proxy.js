@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server'
 import { verifyToken } from './lib/auth'
-import { ADMIN_AUTH_COOKIE_NAME, AUTH_COOKIE_NAME } from './lib/auth-cookie'
+import { ADMIN_AUTH_COOKIE_NAME, AUTH_COOKIE_NAME, AUTHOR_AUTH_COOKIE_NAME } from './lib/auth-cookie'
 
 export function proxy(request) {
 	const { pathname } = request.nextUrl
 	const userToken = request.cookies.get(AUTH_COOKIE_NAME)?.value
 	const adminToken = request.cookies.get(ADMIN_AUTH_COOKIE_NAME)?.value
+	const authorToken = request.cookies.get(AUTHOR_AUTH_COOKIE_NAME)?.value
 	const user = userToken ? verifyToken(userToken) : null
 	const admin = adminToken ? verifyToken(adminToken) : null
+	const author = authorToken ? verifyToken(authorToken) : null
 
 	if (pathname === '/login' || pathname === '/register') {
 		if (admin?.role === 'ADMIN') {
@@ -43,6 +45,28 @@ export function proxy(request) {
 		return NextResponse.next()
 	}
 
+	if (pathname === '/author/login') {
+		if (author?.role === 'AUTHOR') {
+			return NextResponse.redirect(new URL('/author', request.url))
+		}
+
+		return NextResponse.next()
+	}
+
+	if (pathname.startsWith('/author')) {
+		if (!author || author.role !== 'AUTHOR') {
+			const response = NextResponse.redirect(new URL('/author/login', request.url))
+
+			if (authorToken) {
+				response.cookies.delete(AUTHOR_AUTH_COOKIE_NAME)
+			}
+
+			return response
+		}
+
+		return NextResponse.next()
+	}
+
 	const protectedPaths = ['/dashboard', '/profile']
 	const isProtectedPath = protectedPaths.some((path) => pathname.startsWith(path))
 
@@ -60,5 +84,12 @@ export function proxy(request) {
 }
 
 export const config = {
-	matcher: ['/admin/:path*', '/dashboard/:path*', '/profile/:path*', '/login', '/register']
+	matcher: [
+		'/admin/:path*',
+		'/author/:path*',
+		'/dashboard/:path*',
+		'/profile/:path*',
+		'/login',
+		'/register'
+	]
 }

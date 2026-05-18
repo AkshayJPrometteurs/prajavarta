@@ -14,12 +14,18 @@ const CategorySection = ({ cat, hero, stories }) => {
 
     return (
         <section style={{ padding: '8px 0 24px' }}>
-            <CategoryUnderline name={cat} url={`/category/${getCategoryNamesEnglish(hero?.categoryIds, categories)}`} />
+            <CategoryUnderline
+                name={cat}
+                url={`/category/${getCategoryNamesEnglish(hero?.categoryIds, categories)}`}
+            />
             {screenWidth < 992 ? (
                 <>
                     {/* Mobile layout: featured + stacked list */}
                     <div>
-                        <FeaturedCard category={cat} headline={hero?.title} data={hero} />
+                        <FeaturedCard
+                            headline={hero?.title}
+                            data={hero}
+                        />
                         <div
                             style={{
                                 display: 'flex',
@@ -34,11 +40,9 @@ const CategorySection = ({ cat, hero, stories }) => {
                                 return (
                                     <StandardCard
                                         key={i}
-                                        category={cat}
                                         headline={s?.title}
                                         imageUrl={s?.featuredImage}
                                         data={s}
-                                        categoryNameEnglish={getCategoryNamesEnglish(s?.categoryIds, categories)}
                                     />
                                 )
                             })}
@@ -49,17 +53,15 @@ const CategorySection = ({ cat, hero, stories }) => {
                 <>
                     {/* Desktop layout: 1.4fr + 1fr grid */}
                     <div className="grid grid-cols-2 gap-4">
-                        <FeaturedCard category={cat} headline={hero?.title} data={hero} />
+                        <FeaturedCard headline={hero?.title} data={hero} />
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                             {stories.map((s, i) => (
                                 <StandardCard
                                     key={i}
-                                    category={cat}
                                     headline={s?.title}
                                     layout="row"
                                     imageUrl={s?.featuredImage}
                                     data={s}
-                                    categoryNameEnglish={getCategoryNamesEnglish(s?.categoryIds, categories)}
                                 />
                             ))}
                         </div>

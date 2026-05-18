@@ -10,14 +10,12 @@ import HeroCard from "@/components/cards/HeroCard"
 import { catColor } from "@/lib/catColors"
 import CategoriesSidebar from "./Sidebars/CategoriesSidebar"
 import { useParams } from "next/navigation"
-import { getCategoryNames, getCategoryNamesEnglish } from "@/lib/helper"
-import { useAuth } from "@/contexts/AuthContext"
+import { convertToMarathiNumber, formatMarathiDateFull } from "@/lib/helper"
 import axiosInstance from "@/lib/axios"
 import SectionLayout from "@/layout/SectionLayout"
 import Link from "next/link"
 
 const Categories = () => {
-    const { categories } = useAuth();
     const { screenWidth } = useScreenSize();
     const { slug } = useParams();
     const CAT = decodeURIComponent(slug);
@@ -95,15 +93,11 @@ const Categories = () => {
                 </p>
 
                 <div className="flex gap-3.5 mt-3.5 text-[13px] text-(--text-tertiary)">
-                    <span className="mr">{stats.total_news || 0} बातम्या</span>
+                    <span className="mr">{convertToMarathiNumber(stats.total_news) || 0} बातम्या</span>
                     <span>·</span>
                     <span className="mr">
                         {stats.last_updated
-                            ? new Date(stats.last_updated).toLocaleDateString('mr-IN', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            })
+                            ? formatMarathiDateFull(stats.last_updated)
                             : 'अद्यतनित नाही'
                         }
                     </span>
@@ -121,8 +115,6 @@ const Categories = () => {
             }>
                 {LATEST.length > 0 && (
                     <HeroCard
-                        category={getCategoryNames(LATEST[0]?.categoryIds, categories) || CAT}
-                        categoryNameEnglish={getCategoryNamesEnglish(LATEST[0]?.categoryIds, categories) || CAT}
                         headline={LATEST[0]?.title || "No news available"}
                         subtitle={LATEST[0]?.summary}
                         redirectUrl={`/article/${LATEST[0]?.slug}`}
@@ -134,13 +126,11 @@ const Categories = () => {
                 {/* Latest feed */}
                 {LATEST.length > 1 && (
                     <div className="mt-5">
-                        <CategoryUnderline name={CAT} label="ताज्या बातम्या" />
+                        <CategoryUnderline name={CAT} label="ताज्या बातम्या" url={`/latest-news/?category=${slug}`} />
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {LATEST.slice(1).map((news, i) => (
                                 <StandardCard
                                     key={news.id}
-                                    category={getCategoryNames(news?.categoryIds, categories) || CAT}
-                                    categoryNameEnglish={getCategoryNamesEnglish(news?.categoryIds, categories) || CAT}
                                     headline={news.title}
                                     layout="col"
                                     imageUrl={news.featuredImage}
@@ -218,8 +208,6 @@ const Categories = () => {
                                     </div>
                                     <StandardCard
                                         layout="col"
-                                        category={getCategoryNames(news?.categoryIds) || CAT}
-                                        categoryNameEnglish={getCategoryNamesEnglish(news?.categoryIds) || CAT}
                                         headline={news.title}
                                         imageUrl={news.featuredImage}
                                         data={news}
@@ -261,7 +249,6 @@ const Categories = () => {
                                 <StandardCard
                                     key={news.id}
                                     layout="col"
-                                    category={getCategoryNames(news?.categoryIds, categories) || CAT}
                                     headline={news.title}
                                     imageUrl={news.featuredImage}
                                     data={news}

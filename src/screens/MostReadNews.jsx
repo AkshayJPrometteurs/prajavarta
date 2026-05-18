@@ -54,6 +54,7 @@ const MostReadNews = () => {
                 <CategoryUnderline
                     name="Most Read"
                     label={categoryName ? `${categoryName} - मधील सर्वाधिक वाचलेले` : "सर्वाधिक वाचलेल्या बातम्या"}
+                    viewAll={false}
                 />
                 <p className="text-gray-600 mt-2">
                     {categoryName
@@ -74,8 +75,6 @@ const MostReadNews = () => {
                             <StandardCard
                                 key={item.id}
                                 layout="col"
-                                category={getCategoryNames(item.categoryIds, categories)}
-                                categoryNameEnglish={getCategoryNamesEnglish(item.categoryIds, categories)}
                                 headline={item.title}
                                 imageUrl={item.featuredImage}
                                 data={item}

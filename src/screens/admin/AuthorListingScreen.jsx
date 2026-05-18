@@ -154,9 +154,12 @@ export default function AuthorListingScreen() {
                     </table>
                 </div>
 
-                <AuthorFormModal isOpen={state.isFormOpen} author={state.editingAuthor}
+                <AuthorFormModal 
+                    isOpen={state.isFormOpen}
+                    author={state.editingAuthor}
                     onClose={() => updateState({ isFormOpen: false, editingAuthor: null })}
-                    onSubmit={handleFormSubmit} />
+                    onSubmit={handleFormSubmit}
+                />
             </div>
         </AdminLayout>
     )

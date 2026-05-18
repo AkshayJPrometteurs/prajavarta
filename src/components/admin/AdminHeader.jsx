@@ -63,7 +63,7 @@ export default function AdminHeader() {
                     {/* User Dropdown */}
                     <div className="dropdown dropdown-end">
                         <div tabIndex={0} role="button" className="btn btn-ghost flex items-center gap-2 rounded-full px-2 py-1">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white">
                                 {getInitials(user?.name)}
                             </div>
                             <span className="hidden text-sm font-medium text-base-content sm:inline">

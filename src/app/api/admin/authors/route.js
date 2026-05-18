@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import bcrypt from 'bcryptjs'
 
 export async function GET(request) {
     try {
@@ -11,8 +12,8 @@ export async function GET(request) {
             where.isActive = isActive === 'true'
         }
 
-        const authors = await prisma.author.findMany({
-            where,
+        const authors = await prisma.user.findMany({
+            where: { ...where, role: 'AUTHOR' },
             orderBy: { name: 'asc' }
         })
 
@@ -25,23 +26,31 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json()
-        const { name, nameEnglish, role, experience, bio, image, twitter, linkedin, email } = body
+        const { name, nameEnglish, role, experience, bio, image, twitter, linkedin, email, password } = body
 
         if (!name) {
             return NextResponse.json({ success: false, error: 'Name is required' }, { status: 400 })
         }
 
-        const author = await prisma.author.create({
+        if (!password) {
+            return NextResponse.json({ success: false, error: 'Password is required' }, { status: 400 })
+        }
+
+        const passwordHash = await bcrypt.hash(password, 12)
+
+        const author = await prisma.user.create({
             data: {
                 name,
                 nameEnglish,
-                role,
+                role: 'AUTHOR',
+                designation: role,
                 experience,
                 bio,
                 image,
                 twitter,
                 linkedin,
-                email
+                email,
+                passwordHash
             }
         })
 

@@ -14,7 +14,6 @@ const RecommendedGrid = ({ items = [] }) => {
 				{(items && items.length > 0) && items.map((s, i) => (
 					<StandardCard 
 						key={i} 
-						category={getCategoryNames(s?.categoryIds, categories) || ""} 
 						headline={s.title} 
 						layout="col" 
 						imageUrl={s?.featuredImage}

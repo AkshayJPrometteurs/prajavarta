@@ -1,25 +1,22 @@
+"use client"
+
 import { catColor } from '@/lib/catColors'
 import Link from 'next/link'
+import { memo } from 'react'
 
-export default function CompactListItem({ n, headline, category, slug }) {
+const CompactListItem = ({ n, headline, category, slug, isLast = false }) => {
     const content = (
         <li
-            style={{
-                display: 'grid',
-                gridTemplateColumns: '32px 1fr',
-                gap: 12,
-                padding: '12px 0',
-                borderBottom: '1px solid var(--border-default)',
-                listStyle: 'none',
-                cursor: slug ? 'pointer' : 'default'
-            }}
+            className={`
+                grid grid-cols-[32px_1fr] gap-3 py-3 list-none
+                ${!isLast ? 'border-b border-(--border-default)' : ''}
+                ${slug ? 'cursor-pointer' : 'cursor-default'}
+            `}
         >
             <span
+                className="text-2xl font-extrabold leading-none"
                 style={{
-                    fontSize: 24,
-                    fontWeight: 800,
                     color: 'var(--brand-primary)',
-                    lineHeight: 1,
                     fontFamily: 'var(--font-en, system-ui)',
                 }}
             >
@@ -29,13 +26,9 @@ export default function CompactListItem({ n, headline, category, slug }) {
             <div>
                 {category && (
                     <span
-                        className="mr"
+                        className="mr text-[11px] font-bold uppercase tracking-wider"
                         style={{
-                            fontSize: 11,
-                            fontWeight: 700,
                             color: catColor(category),
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
                         }}
                     >
                         {category}
@@ -43,11 +36,8 @@ export default function CompactListItem({ n, headline, category, slug }) {
                 )}
 
                 <p
-                    className="mr"
+                    className="mr text-sm font-semibold leading-[1.4]"
                     style={{
-                        fontSize: 14,
-                        lineHeight: 1.4,
-                        fontWeight: 600,
                         color: 'var(--text-primary)',
                     }}
                 >
@@ -59,7 +49,10 @@ export default function CompactListItem({ n, headline, category, slug }) {
 
     if (slug) {
         return (
-            <Link href={`/article/${slug}`} className="no-underline hover:opacity-80 transition-opacity">
+            <Link
+                href={`/article/${slug}`}
+                className="no-underline transition-opacity hover:opacity-80"
+            >
                 {content}
             </Link>
         )
@@ -67,3 +60,5 @@ export default function CompactListItem({ n, headline, category, slug }) {
 
     return content
 }
+
+export default memo(CompactListItem)

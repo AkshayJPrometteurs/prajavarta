@@ -1,5 +1,6 @@
 "use client"
-import { memo } from "react"
+
+import { memo, useEffect, useState } from "react"
 import MainLayout from "@/layout/MainLayout"
 import Ad from "@/components/Ad"
 import { useScreenSize } from "@/hooks/useScreenSize"
@@ -9,60 +10,112 @@ import TrendingModule from "./HomePageSections/TrendingModule"
 import HeroCard from "@/components/cards/HeroCard"
 import { catColor } from "@/lib/catColors"
 import { useParams } from "next/navigation"
-import CompactListItem from "@/components/ui/CompactListItem"
 import Newsletter from "@/components/Newsletter"
 import TagSidebar from "./Sidebars/TagSidebar"
 import Link from "next/link"
 import SectionLayout from "@/layout/SectionLayout"
-
-const LATEST = [
-    'मराठा आरक्षणावर सर्वोच्च न्यायालयाची सुनावणी पुढे ढकलली',
-    'जरांगे पाटील यांचा उपोषण मागे घेण्याचा निर्णय',
-    'मराठा आरक्षणासाठी विधेयक मांडण्याची शक्यता',
-    'OBC नेत्यांचा मराठा आरक्षणाला विरोध कायम',
-    'मराठा आरक्षण: सर्वपक्षीय बैठकीत तोडगा काढण्याचा प्रयत्न',
-]
-
-const MOST_READ = [
-    'मराठा आरक्षणाचा इतिहास: १९९० ते आजपर्यंत',
-    'मराठा समाजाची लोकसंख्या किती? आकडेवारी काय सांगते',
-    'OBC आरक्षणाचा मराठा आरक्षणाशी काय संबंध',
-    'जरांगे पाटील कोण आहेत? संपूर्ण ओळख',
-    'सर्वोच्च न्यायालयाने मराठा आरक्षण रद्द का केले?',
-]
-
-const RECENTLY_UPDATED = [
-    { t: '२ मि.', h: 'जरांगे पाटीलांचे आज सकाळचे निवेदन' },
-    { t: '४५ मि.', h: 'छत्रपती संभाजीनगरात शांतता' },
-    { t: '२ तास', h: 'सरकारची उद्या समिती बैठक' },
-    { t: '५ तास', h: 'मराठा संघटनांची एकत्रित बैठक पुढे ढकलली' },
-]
-
-const RELATED_TAGS = ['जरांगे पाटील', 'OBC आरक्षण', 'सर्वोच्च न्यायालय', 'विधानसभा', 'मंत्रिमंडळ', 'महाराष्ट्र', 'समाजकारण']
+import axiosInstance from "@/lib/axios"
 
 const Tags = () => {
-    const { screenWidth } = useScreenSize();
-    const { slug = [] } = useParams();
-    const [cat, tag] = slug;
-    const CAT = cat ? decodeURIComponent(cat) : '';
-    const TAG = tag ? decodeURIComponent(tag) : '';
-    const TRENDING_TAG = [
-        { c: CAT, h: 'मनोज जरांगे पाटील आज औरंगाबादेत उपोषणाला बसणार' },
-        { c: CAT, h: 'सरकारने जरांगे पाटील यांच्याशी चर्चेसाठी समिती नेमली' },
-        { c: CAT, h: 'मराठा आरक्षणावर मुख्यमंत्र्यांचे आज निवेदन' },
-        { c: CAT, h: 'आरक्षण आंदोलनाचे पर्यटनावर परिणाम' },
-        { c: CAT, h: 'OBC आयोगाच्या अहवालाला विरोध सुरूच' },
-    ]
+    const { screenWidth } = useScreenSize()
+    const params = useParams()
+    const [tagData, setTagData] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+
+    const slugArray = Array.isArray(params?.slug)
+        ? params.slug
+        : []
+
+    const currentTag = decodeURIComponent(slugArray[0] || '')
+
+    useEffect(() => {
+        if (!currentTag) {
+            setError('टॅग आवश्यक आहे.')
+            setLoading(false)
+            return
+        }
+
+        const fetchTagData = async () => {
+            try {
+                setLoading(true)
+                const response = await axiosInstance.get(`/tag/${encodeURIComponent(currentTag)}`)
+                if (response.data.success) {
+                    setTagData(response.data.data)
+                    setError(null)
+                } else {
+                    setError(response.data.error || 'डेटा सापडला नाही')
+                }
+            } catch (err) {
+                console.error('Error fetching tag data:', err)
+                setError('टॅग डेटा लोड करण्यात अडचण आली आहे.')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchTagData()
+    }, [currentTag])
+
+    const TAG = tagData?.meta?.tag || currentTag
+
+    const updatedDate =
+        tagData?.meta?.lastUpdated
+            ? new Date(
+                tagData.meta.lastUpdated
+            ).toLocaleDateString(
+                'mr-IN',
+                { day: 'numeric', month: 'long', year: 'numeric' }
+            )
+            : ''
+    
+    const hero = tagData?.hero || null
+    const latestNews = tagData?.latestNews || []
+
+    // Trending section uses mostRead
+    const mostReadNews = tagData?.mostRead || []
+    const relatedTags = tagData?.relatedTags || []
+
+    if (loading) {
+        return (
+            <MainLayout isBannerAdvertisement>
+                <div className="flex items-center justify-center py-20 min-h-[60vh]">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600" />
+                </div>
+            </MainLayout>
+        )
+    }
+
+    if (error || !tagData) {
+        return (
+            <MainLayout isBannerAdvertisement>
+                <div className="text-center py-20 min-h-[60vh]">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                        {error || 'टॅग सापडला नाही'}
+                    </h2>
+
+                    <Link
+                        href="/"
+                        className="text-orange-600 font-semibold hover:underline"
+                    >
+                        मुख्यपृष्ठावर परत जा
+                    </Link>
+                </div>
+            </MainLayout>
+        )
+    }
+
     return (
         <MainLayout isBannerAdvertisement>
             <div>
-                {/* Tag header */}
+                {/* Header */}
+
                 <div
                     className="pb-6 mb-8 border-b-4"
-                    style={{ borderColor: catColor(CAT) }}
+                    style={{ borderColor: catColor(TAG) }}
                 >
                     <div className="mr text-[11px] font-bold tracking-[0.08em] uppercase mb-2">
-                        TAG · विषय
+                        विषय
                     </div>
 
                     <h1 className="mr mb-3 text-[clamp(28px,4vw,44px)] font-extrabold leading-[1.1] tracking-[-0.02em]">
@@ -70,89 +123,136 @@ const Tags = () => {
                     </h1>
 
                     <p className="mr m-0 text-[clamp(13px,1.2vw,16px)] leading-[1.6]">
-                        #{TAG} विषयाशी संबंधित सर्व बातम्या, विश्लेषण आणि अद्यतने एकाच ठिकाणी. राज्यातील सामाजिक आणि राजकीय वर्तुळातील सर्वात चर्चित विषय.
+                        #{TAG} विषयाशी संबंधित सर्व बातम्या, विश्लेषण आणि अद्यतने एकाच ठिकाणी.
                     </p>
 
                     <div className="flex gap-3 mt-3.5 text-[13px]">
-                        <span className="mr">१४८ बातम्या</span>
+                        <span className="mr">
+                            { tagData?.meta ?.totalNews }{" "}
+                            बातम्या
+                        </span>
+
                         <span>·</span>
-                        <span className="mr">अद्यतनित: २९ एप्रिल</span>
+
+                        <span className="mr">
+                            {updatedDate
+                                ? `अद्यतनित: ${updatedDate}`
+                                : 'अद्यतनित माहिती उपलब्ध नाही'}
+                        </span>
                     </div>
                 </div>
 
-                <SectionLayout sidebar={<TagSidebar />}>
+                <SectionLayout
+                    sidebar={
+                        <TagSidebar
+                            tag={TAG}
+                            mostRead={mostReadNews}
+                            latestNews={latestNews}
+                        />
+                    }
+                >
+                {/* HERO */}
+
+                {hero && (
                     <HeroCard
-                        category={CAT}
-                        headline="मराठा आरक्षणावर सर्वोच्च न्यायालयाची सुनावणी पुढे ढकलली"
-                        redirectUrl={`/article/${CAT}`}
+                        headline={hero?.title || ''}
+                        subtitle={hero?.summary || ''}
+                        redirectUrl={hero?.slug ? `/article/${hero.slug}` : '/'}
+                        advertisementImage={hero?.featuredImage || ''}
+                        data={hero}
+                    />
+                )}
+
+                {/* Latest News */}
+
+                <div className="mt-5">
+                    <CategoryUnderline
+                        name={TAG}
+                        label="ताज्या बातम्या"
+                        viewAll={false}
                     />
 
-                    {/* Latest */}
-                    <div className="mt-5">
-                        <CategoryUnderline name={CAT} label="ताज्या बातम्या" />
-                        <div className="flex flex-col gap-4">
-                            {LATEST.map((h, i) => (
-                                <StandardCard key={i} category={CAT} headline={h} />
-                            ))}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {latestNews.map(
+                            (news, i) => (
+                                <StandardCard
+                                    key={news.id || i}
+                                    headline={news?.title}
+                                    layout="col"
+                                    imageUrl={news?.featuredImage}
+                                    data={news}
+                                />
+                            )
+                        )}
+                    </div>
+                </div>
+
+                {/* Ad */}
+
+                <Ad
+                    id={screenWidth <= 768 ? "C1" : "DC3"}
+                    name={screenWidth <= 768 ? "Mobile Tag Below Hero" : "Desktop Tag Between Modules"}
+                    size={screenWidth <= 768 ? "300×250" : "728×90"}
+                    width={screenWidth <= 768 ? 300 : 728}
+                    height={screenWidth <= 768 ? 250 : 90}
+                    fluid={screenWidth <= 768}
+                    className={`mx-auto ${screenWidth <= 768 ? "inline-block" : ""}`}
+                />
+
+                {/* Most Read / Trending */}
+
+                {mostReadNews.length >
+                    0 && (
+                        <div className="bg-(--surface-secondary) p-6">
+                            <TrendingModule
+                                label={`${TAG}-मधील सर्वाधिक वाचलेले`}
+                                items={mostReadNews}
+                                url={`/most-read`}
+                            />
                         </div>
-                    </div>
-
-                    <Ad
-                        id={screenWidth <= 768 ? "C1" : "DC3"}
-                        name={screenWidth <= 768 ? "Mobile Tag Below Hero" : "Desktop Tag Between Modules"}
-                        size={screenWidth <= 768 ? "300×250" : "728×90"}
-                        width={screenWidth <= 768 ? 300 : 728}
-                        height={screenWidth <= 768 ? 250 : 90}
-                        fluid={screenWidth <= 768}
-                        className={`mx-auto ${screenWidth <= 768 ? "inline-block" : ""}`}
-                    />
-
-                    {/* Trending */}
-                    <div className="bg-(--surface-secondary) p-6">
-                        <TrendingModule label={`${TAG}-मधील ट्रेंडिंग`} items={TRENDING_TAG} />
-                    </div>
-
-                    {/* Most read (mobile) */}
-                    <div>
-                        <CategoryUnderline name={CAT} label="सर्वाधिक वाचलेले" />
-                        <ul className="list-none m-0 p-0">
-                            {MOST_READ.map((h, i) => (
-                                <li
-                                    key={i}
-                                    className="mr text-sm py-3.5 border-b border-(--border-default) font-medium"
-                                >
-                                    {h}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    {/* Related tags */}
-                    <div>
-                        <div className="mr text-[13px] font-bold tracking-[0.06em] uppercase mb-3">
-                            संबंधित विषय
-                        </div>
-
-                        <div className="flex flex-wrap gap-2">
-                            {RELATED_TAGS.map((t) => (
-                                <Link
-                                    key={t}
-                                    href={`/tag/${CAT}/${t}`}
-                                    className="mr px-3.5 py-2 bg-(--brand-primary-light) text-[13px] font-semibold rounded-full cursor-pointer"
-                                >
-                                    #{t}
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Mobile ad */}
-                    {screenWidth <= 768 && (
-                        <Ad id="C3" name="Mobile Tag Before Footer" size="Multiplex / Native" height={300} fluid />
                     )}
-                </SectionLayout>
-            </div>
-        </MainLayout>
+
+                {/* Related Tags */}
+
+                {relatedTags.length >
+                    0 && (
+                        <div>
+                            <div className="mr text-[13px] font-bold tracking-[0.06em] uppercase mb-3">
+                                संबंधित विषय
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                                {relatedTags.map(
+                                    tag => (
+                                        <Link
+                                            key={tag}
+                                            href={`/tag/${encodeURIComponent(tag)}`}
+                                            className="mr px-3.5 py-2 bg-(--brand-primary-light) text-[13px] font-semibold rounded-full cursor-pointer"
+                                        >
+                                            #{tag}
+                                        </Link>
+                                    )
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                <Newsletter />
+
+                {/* Mobile Ad */}
+
+                {screenWidth <= 768 && (
+                    <Ad
+                        id="C3"
+                        name="Mobile Tag Before Footer"
+                        size="Multiplex / Native"
+                        height={300}
+                        fluid
+                    />
+                )}
+            </SectionLayout>
+        </div>
+        </MainLayout >
     )
 }
 

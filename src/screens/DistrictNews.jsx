@@ -48,6 +48,7 @@ const DistrictNews = () => {
                 <CategoryUnderline
                     name="Cities"
                     label="शहरांनुसार बातम्या"
+                    viewAll={false}
                 />
                 <p className="text-gray-600 mt-2">
                     महाराष्ट्रातील विविध शहरे आणि जिल्ह्यांतील ताज्या घडामोडी.
@@ -68,8 +69,6 @@ const DistrictNews = () => {
                                 </div>
                                 <StandardCard
                                     layout="col"
-                                    category={getCategoryNames(item.categoryIds, categories)}
-                                    categoryNameEnglish={getCategoryNamesEnglish(item.categoryIds, categories)}
                                     headline={item.title}
                                     imageUrl={item.featuredImage}
                                     data={item}

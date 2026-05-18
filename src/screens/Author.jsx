@@ -220,7 +220,6 @@ const Author = () => {
                                 <StandardCard
                                     key={item.id}
                                     layout="col"
-                                    category={item.category?.name}
                                     headline={item.title}
                                     imageUrl={item.featuredImage}
                                     data={item}
@@ -256,6 +255,7 @@ const Author = () => {
                             <TrendingModule
                                 label="सर्वाधिक वाचलेले"
                                 items={mostRead}
+                                viewAll={false}
                             />
                         </div>
                     )}

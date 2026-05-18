@@ -7,6 +7,7 @@ import Meta from "../ui/Meta"
 import CustomImage from "../ui/CustomImage"
 
 import { useAuth } from "@/contexts/AuthContext"
+import { getCategoryNames, getCategoryNamesEnglish } from "@/lib/helper"
 
 const StandardCard = ({
     category,
@@ -37,24 +38,32 @@ const StandardCard = ({
                 </Link>
             </div>
 
-            <div className="pt-2">
+            <div className={layout === 'row' ? 'pt-0' : 'pt-2.5'}>
                 <div className="flex flex-wrap gap-2">
-                    {data?.categoryIds ? (
-                        String(data.categoryIds).split(',').map((idStr, idx) => {
-                            const id = parseInt(idStr.trim());
-                            const cat = categories.find(c => c.id === id);
-                            if (!cat) return null;
-                            return (
-                                <Link key={idx} href={`/category/${cat.nameEnglish}`}>
-                                    <CategoryChip name={cat.name} size="sm" />
-                                </Link>
-                            );
-                        })
-                    ) : category?.length > 0 && (
-                        <Link href={`/category/${categoryNameEnglish}`}>
-                            <CategoryChip name={category} />
-                        </Link>
-                    )}
+                    {data?.categoryIds &&
+                        String(data.categoryIds)
+                            .split(',')
+                            .map((id) => id.trim())
+                            .filter(Boolean)
+                            .map((id) => {
+                                const categoryName = getCategoryNames(id, categories)
+                                const categoryEnglishName = getCategoryNamesEnglish(id, categories);
+
+                                // Skip if category not found
+                                if (!categoryName || !categoryEnglishName) {
+                                    return null
+                                }
+
+                                return (
+                                    <CategoryChip
+                                        key={id}
+                                        name={categoryName}
+                                        url={`/category/${categoryEnglishName}`}
+                                    />
+                                )
+                            }
+                        )
+                    }
                 </div>
 
                 <Link href={`/article/${data?.slug}`}>
