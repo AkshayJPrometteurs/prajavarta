@@ -14,6 +14,7 @@ import axiosInstance from "@/lib/axios"
 import StandardCard from "@/components/cards/StandardCard"
 import { getCategoryNames, getCategoryNamesEnglish } from "@/lib/helper"
 import { useAuth } from "@/contexts/AuthContext"
+import Link from "next/link"
 
 const MainPage = () => {
     const { categories } = useAuth();

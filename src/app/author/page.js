@@ -1,4 +1,4 @@
-import AdminDashboardScreen from '@/screens/admin/AdminDashboardScreen'
+import AdminDashboardScreen from '@/screens/admin/dashboard/AdminDashboardScreen'
 
 export default function AdminPage() {
   return <AdminDashboardScreen />

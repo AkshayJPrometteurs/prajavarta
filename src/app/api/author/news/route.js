@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { existsSync } from 'fs'
 import { unlink } from 'fs/promises'
 import { join } from 'path'
+import { createNotification } from '@/lib/notification'
 
 function generateSlug(value) {
     return value
@@ -80,6 +81,7 @@ function buildPayload(body) {
         videoId: body.videoId?.trim() || null,
         videoUrl: body.videoUrl?.trim() || null,
         isActive: body.isActive !== false,
+        authorId: toInt(body.authorId),
         categoryId: toInt(body.categoryId),
         categoryIds: Array.isArray(body.categoryIds) && body.categoryIds.length > 0
             ? body.categoryIds.join(',')
@@ -179,6 +181,8 @@ export async function POST(request) {
         const news = await prisma.news.create({
             data: {
                 ...payload,
+                ownerType: 'PENDING_REPORTER',
+                isActive: false,
                 slug: await buildUniqueSlug(payload.title),
                 galleryImages: {
                     create: Array.isArray(body.galleryImages)
@@ -187,6 +191,14 @@ export async function POST(request) {
                 }
             },
             include: newsInclude
+        })
+
+        await createNotification({
+            title: 'Author submitted news',
+            message: `Author ${payload.authorId || 'unknown'} submitted "${payload.title}" for review.`,
+            type: 'author_news',
+            authorId: payload.authorId,
+            metadata: { newsId: news.id }
         })
 
         return NextResponse.json({
@@ -247,6 +259,14 @@ export async function PUT(request) {
             include: newsInclude
         })
 
+        await createNotification({
+            title: 'Author updated news',
+            message: `Author ${payload.authorId || 'unknown'} updated "${payload.title}".`,
+            type: 'author_news',
+            authorId: payload.authorId,
+            metadata: { newsId: news.id }
+        })
+
         return NextResponse.json({
             success: true,
             data: news,
@@ -305,6 +325,16 @@ export async function PATCH(request) {
 
             await prisma.news.deleteMany({
                 where: { id: { in: parsedIds } }
+            })
+        } else if (action === 'approve') {
+            await prisma.news.updateMany({
+                where: { id: { in: parsedIds } },
+                data: { isActive: true, ownerType: 'REPORTER' }
+            })
+        } else if (action === 'reject') {
+            await prisma.news.updateMany({
+                where: { id: { in: parsedIds } },
+                data: { isActive: false, ownerType: 'REPORTER' }
             })
         } else {
             await prisma.news.updateMany({

@@ -80,6 +80,7 @@ function buildPayload(body) {
         videoId: body.videoId?.trim() || null,
         videoUrl: body.videoUrl?.trim() || null,
         isActive: body.isActive !== false,
+        authorId: toInt(body.authorId),
         categoryId: toInt(body.categoryId),
         categoryIds: Array.isArray(body.categoryIds) && body.categoryIds.length > 0
             ? body.categoryIds.join(',')
@@ -305,6 +306,16 @@ export async function PATCH(request) {
 
             await prisma.news.deleteMany({
                 where: { id: { in: parsedIds } }
+            })
+        } else if (action === 'approve') {
+            await prisma.news.updateMany({
+                where: { id: { in: parsedIds } },
+                data: { isActive: true, ownerType: 'REPORTER' }
+            })
+        } else if (action === 'reject') {
+            await prisma.news.updateMany({
+                where: { id: { in: parsedIds } },
+                data: { isActive: false, ownerType: 'REPORTER' }
             })
         } else {
             await prisma.news.updateMany({

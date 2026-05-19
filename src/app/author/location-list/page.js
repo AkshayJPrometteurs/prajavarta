@@ -1,4 +1,4 @@
-import LocationListingScreen from '@/screens/admin/LocationListingScreen'
+import LocationListingScreen from '@/screens/admin/location/LocationListingScreen'
 
 export const metadata = {
   title: 'Manage Locations - Prajavarta Admin',

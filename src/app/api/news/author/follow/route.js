@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import { AUTH_COOKIE_NAME } from '@/lib/auth-cookie'
+import { createNotification } from '@/lib/notification'
 
 export async function POST(request) {
     try {
@@ -24,6 +25,11 @@ export async function POST(request) {
         const userId = decoded.userId
         const parsedAuthorId = parseInt(authorId)
 
+        const author = await prisma.user.findUnique({
+            where: { id: parsedAuthorId },
+            select: { id: true, name: true, email: true }
+        })
+
         // Raw SQL fallback for follow/unfollow to bypass client sync issues
         const followCheck = await prisma.$queryRaw`SELECT id FROM author_followers WHERE author_id = ${parsedAuthorId} AND user_id = ${userId} LIMIT 1`
         
@@ -31,10 +37,26 @@ export async function POST(request) {
             // Unfollow
             const followId = followCheck[0].id
             await prisma.$executeRaw`DELETE FROM author_followers WHERE id = ${followId}`
+            await createNotification({
+                title: 'Author unfollowed',
+                message: `${decoded.email} unfollowed ${author?.name || 'an author'}.`,
+                type: 'author_follow',
+                userId,
+                authorId: parsedAuthorId,
+                metadata: { action: 'unfollow' }
+            })
             return NextResponse.json({ success: true, following: false, message: 'Unfollowed successfully' })
         } else {
             // Follow
             await prisma.$executeRaw`INSERT INTO author_followers (user_id, author_id, created_at) VALUES (${userId}, ${parsedAuthorId}, NOW())`
+            await createNotification({
+                title: 'Author followed',
+                message: `${decoded.email} followed ${author?.name || 'an author'}.`,
+                type: 'author_follow',
+                userId,
+                authorId: parsedAuthorId,
+                metadata: { action: 'follow' }
+            })
             return NextResponse.json({ success: true, following: true, message: 'Followed successfully' })
         }
 

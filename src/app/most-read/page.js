@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import MostReadNews from "@/screens/MostReadNews";
 
 export const metadata = {
@@ -6,5 +7,9 @@ export const metadata = {
 }
 
 export default function MostReadPage() {
-    return <MostReadNews />;
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <MostReadNews />
+        </Suspense>
+    )
 }

@@ -15,6 +15,7 @@ import { toast } from 'react-toastify'
 import axiosInstance from "@/lib/axios"
 import { timeAgo } from "@/lib/helper"
 import CustomImage from "@/components/ui/CustomImage"
+import { useReduxAuth } from "@/hooks/useReduxAuth"
 
 const SHARE_BUTTONS = [
     { icon: <WhatsAppIcon size={14} />, color: '#25D366', label: 'WhatsApp' },
@@ -28,6 +29,7 @@ const Articles = () => {
     const [footerOffset, setFooterOffset] = useState(0);
     const anchorRef = useRef(null);
     const { slug = [] } = useParams();
+    const { isAuthenticated } = useReduxAuth();
 
     // The last part of the slug is usually the article slug
     const articleSlug = slug[slug.length - 1];
@@ -218,7 +220,7 @@ const Articles = () => {
 
                             <div className="flex-1">
                                 <div className="mr text-sm font-semibold">
-                                    <Link href={`/author/${article.author?.nameEnglish || article.author?.name}`}>
+                                    <Link href={`/author-details/${article.author?.nameEnglish || article.author?.name}`}>
                                         {article.author?.name || "प्रजावार्ता प्रतिनिधी"}
                                     </Link>
                                     {article.author?.role && (
@@ -232,14 +234,16 @@ const Articles = () => {
                                     प्रकाशित: {new Date(article.publishedDate || article.createdAt).toLocaleDateString('mr-IN', { day: 'numeric', month: 'long', year: 'numeric' })} · {timeAgo(article.publishedDate || article.createdAt)}
                                 </div>
                             </div>
+                            {isAuthenticated && (
+                                <button
+                                    onClick={handleSaveClick}
+                                    disabled={saveLoading}
+                                    className={`px-3.5 py-2 text-xs font-semibold rounded cursor-pointer ${saved ? 'bg-orange-600 text-white border-orange-600' : 'bg-white border border-(--border-strong) text-(--text-primary)'}`}
+                                >
+                                    {saveLoading ? 'Saving...' : saved ? 'Saved' : 'Save'}
+                                </button>
+                            )}
 
-                            <button
-                                onClick={handleSaveClick}
-                                disabled={saveLoading}
-                                className={`px-3.5 py-2 text-xs font-semibold rounded cursor-pointer ${saved ? 'bg-orange-600 text-white border-orange-600' : 'bg-white border border-(--border-strong) text-(--text-primary)'}`}
-                            >
-                                {saveLoading ? 'Saving...' : saved ? 'Saved' : 'Save'}
-                            </button>
                         </div>
 
                         {screenWidth < 768 && (
@@ -328,7 +332,7 @@ const Articles = () => {
                                         {article.author.twitter && <a href={article.author.twitter} target="_blank" rel="noreferrer">Twitter</a>}
                                         {article.author.linkedin && <a href={article.author.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>}
                                         {article.author.email && <a href={`mailto:${article.author.email}`}>Email</a>}
-                                        <Link href={`/author/${article.author.nameEnglish || article.author.name}`}>All articles →</Link>
+                                        <Link href={`/author-details/${article.author.nameEnglish || article.author.name}`}>All articles →</Link>
                                     </div>
                                 </div>
                             </div>

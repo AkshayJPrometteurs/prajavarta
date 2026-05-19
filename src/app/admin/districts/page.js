@@ -1,4 +1,4 @@
-import DistrictListingScreen from '@/screens/admin/DistrictListingScreen'
+import DistrictListingScreen from "@/screens/admin/district/DistrictListingScreen"
 
 export const metadata = {
   title: 'Manage Districts - Prajavarta Admin',

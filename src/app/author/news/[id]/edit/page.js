@@ -1,4 +1,4 @@
-import NewsFormScreen from '@/screens/admin/NewsFormScreen'
+import NewsFormScreen from '@/screens/admin/news/NewsFormScreen'
 
 export const metadata = {
   title: 'Edit News - Prajavarta Admin',

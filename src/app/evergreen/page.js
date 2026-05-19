@@ -1,4 +1,5 @@
-import EvergreenNews from "@/screens/EvergreenNews";
+import { Suspense } from 'react'
+import EvergreenNews from '@/screens/EvergreenNews'
 
 export const metadata = {
     title: 'विशेष वाचा | प्रजावार्ता',
@@ -6,5 +7,9 @@ export const metadata = {
 }
 
 export default function EvergreenPage() {
-    return <EvergreenNews />;
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <EvergreenNews />
+        </Suspense>
+    )
 }
