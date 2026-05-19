@@ -12,6 +12,21 @@ export async function GET() {
             orderBy: { id: 'desc' }
         })
 
+        const bannerImage = banner?.image
+        const normalizedBanner = banner
+            ? {
+                  ...banner,
+                  image:
+                      typeof bannerImage === 'string'
+                          ? bannerImage.startsWith('http')
+                              ? bannerImage
+                              : bannerImage.startsWith('/')
+                              ? bannerImage
+                              : `/${bannerImage}`
+                          : null
+              }
+            : null
+
         // 2. Latest News
         const latestNewsData = await prisma.news.findMany({
             where: { isActive: true },
@@ -121,7 +136,7 @@ export async function GET() {
         return NextResponse.json({
             success: true,
             data: {
-                banner,
+                banner: normalizedBanner,
                 one_latest_news: oneLatestNews,
                 latest_news: latestNews,
                 trending_news: trendingNews,

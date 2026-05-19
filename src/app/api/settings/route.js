@@ -6,7 +6,13 @@ export async function GET() {
     const data = await prisma.setting.findFirst()
     const appLogo = data?.appLogo || ''
     const appLogoUrl = appLogo
-      ? (typeof appLogo === 'string' && appLogo.startsWith('http') ? appLogo : `/uploads/${appLogo}`)
+      ? (typeof appLogo === 'string'
+          ? appLogo.startsWith('http')
+              ? appLogo
+              : appLogo.startsWith('/') || appLogo.startsWith('uploads/')
+                  ? (appLogo.startsWith('/') ? appLogo : `/${appLogo}`)
+                  : appLogo
+          : null)
       : null
     return NextResponse.json({ success: true, data: { ...(data || {}), appLogoUrl } })
   } catch (err) {

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { existsSync } from 'fs'
 import { unlink } from 'fs/promises'
 import { join } from 'path'
+import { deleteFromCloudinary } from '@/lib/cloudinary'
 
 function generateSlug(value) {
     return value
@@ -283,14 +284,27 @@ export async function PATCH(request) {
             })
 
             const deleteFile = async (filePath) => {
-                if (!filePath || !filePath.startsWith('/uploads/')) return
-                const absolutePath = join(process.cwd(), 'public', filePath)
-                try {
-                    if (existsSync(absolutePath)) {
-                        await unlink(absolutePath)
+                if (!filePath) return
+
+                if (filePath.startsWith('/uploads/')) {
+                    const absolutePath = join(process.cwd(), 'public', filePath)
+                    try {
+                        if (existsSync(absolutePath)) {
+                            await unlink(absolutePath)
+                        }
+                    } catch (err) {
+                        console.error(`Error deleting file ${absolutePath}:`, err)
                     }
-                } catch (err) {
-                    console.error(`Error deleting file ${absolutePath}:`, err)
+                    return
+                }
+
+                if (filePath.startsWith('http')) {
+                    const publicId = filePath.includes('/prajavarta/')
+                        ? filePath.split('/prajavarta/').pop().replace(/\.[^/.]+$/, '')
+                        : null
+                    if (publicId) {
+                        await deleteFromCloudinary(`prajavarta/${publicId}`)
+                    }
                 }
             }
 
@@ -362,14 +376,27 @@ export async function DELETE(request) {
         }
 
         const deleteFile = async (filePath) => {
-            if (!filePath || !filePath.startsWith('/uploads/')) return
-            const absolutePath = join(process.cwd(), 'public', filePath)
-            try {
-                if (existsSync(absolutePath)) {
-                    await unlink(absolutePath)
+            if (!filePath) return
+
+            if (filePath.startsWith('/uploads/')) {
+                const absolutePath = join(process.cwd(), 'public', filePath)
+                try {
+                    if (existsSync(absolutePath)) {
+                        await unlink(absolutePath)
+                    }
+                } catch (err) {
+                    console.error(`Error deleting file ${absolutePath}:`, err)
                 }
-            } catch (err) {
-                console.error(`Error deleting file ${absolutePath}:`, err)
+                return
+            }
+
+            if (filePath.startsWith('http')) {
+                const publicId = filePath.includes('/prajavarta/')
+                    ? filePath.split('/prajavarta/').pop().replace(/\.[^/.]+$/, '')
+                    : null
+                if (publicId) {
+                    await deleteFromCloudinary(`prajavarta/${publicId}`)
+                }
             }
         }
 

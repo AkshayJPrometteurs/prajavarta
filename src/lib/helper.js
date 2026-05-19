@@ -188,7 +188,6 @@ export function getCategoryNames(categoryIds, categories = []) {
 }
 
 export function getCategoryNamesEnglish(categoryIds, categories = []) {
-    console.log('getCategoryNamesEnglish called with:', { categoryIds })
     if (!categoryIds || !categories?.length) {
         return []
     }
