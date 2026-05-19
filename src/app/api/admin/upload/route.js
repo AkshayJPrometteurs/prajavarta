@@ -1,23 +1,13 @@
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
 import { NextResponse } from 'next/server'
-import { existsSync } from 'fs'
+import { uploadToCloudinary, extractPublicIdFromUrl } from '@/lib/cloudinary'
 
 const uploadFolders = {
-    categories: ['uploads', 'admin', 'categories'],
-    'main-advertisement-banner': ['uploads', 'admin', 'main-advertisement-banner'],
-    news: ['uploads', 'admin', 'news'],
-    authors: ['uploads', 'admin', 'authors'],
-    settings: ['uploads', 'admin', 'settings'],
-    users: ['uploads', 'admin', 'users'],
-}
-
-// Generate random filename
-function generateRandomFilename(originalName) {
-    const ext = originalName.split('.').pop()
-    const random = Math.random().toString(36).substring(2, 4)
-    const timestamp = Date.now()
-    return `${timestamp}-${random}.${ext}`
+    categories: 'categories',
+    'main-advertisement-banner': 'main-advertisement-banner',
+    news: 'news',
+    authors: 'authors',
+    settings: 'settings',
+    users: 'users'
 }
 
 function getImageDimensions(buffer) {
@@ -99,7 +89,6 @@ export async function POST(request) {
             )
         }
 
-        // Validate file type
         if (!file.type.startsWith('image/')) {
             return NextResponse.json(
                 { success: false, error: 'Only image files are allowed' },
@@ -107,7 +96,6 @@ export async function POST(request) {
             )
         }
 
-        // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
             return NextResponse.json(
                 { success: false, error: 'File size should be less than 5MB' },
@@ -115,7 +103,6 @@ export async function POST(request) {
             )
         }
 
-        // Convert file to buffer
         const bytes = await file.arrayBuffer()
         const buffer = Buffer.from(bytes)
 
@@ -140,30 +127,18 @@ export async function POST(request) {
             }
         }
 
-        // Generate random filename
-        const randomFilename = generateRandomFilename(file.name)
-
-        // Define upload directory
-        const uploadDir = join(process.cwd(), 'public', ...uploadFolders[folder])
-
-        // Create directory if it doesn't exist
-        if (!existsSync(uploadDir)) {
-            await mkdir(uploadDir, { recursive: true })
-        }
-
-        // Save file
-        const filepath = join(uploadDir, randomFilename)
-        await writeFile(filepath, buffer)
-
-        // Return the relative path for accessing the image
-        const imagePath = `/${uploadFolders[folder].join('/')}/${randomFilename}`
+        const result = await uploadToCloudinary(buffer, uploadFolders[folder])
+        const imageUrl = result.secure_url
+        const publicId = result.public_id
+        const imagePublicId = extractPublicIdFromUrl(imageUrl)
 
         return NextResponse.json({
             success: true,
             data: {
-                path: imagePath,
-                url: imagePath,
-                filename: randomFilename
+                path: imageUrl,
+                url: imageUrl,
+                filename: imagePublicId || publicId,
+                publicId: imagePublicId || publicId
             },
             message: 'Image uploaded successfully'
         })

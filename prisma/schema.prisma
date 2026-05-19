@@ -7,33 +7,29 @@ datasource db {
 }
 
 model User {
-  id              Int              @id @default(autoincrement())
-  email           String           @unique
-  passwordHash    String           @map("password_hash")
-  name            String?
-  nameEnglish     String?          @map("name_english")
-  role            UserRole         @default(USER)
-  designation     String?
-  experience      String?
-  bio             String?          @db.Text
-  image           String?
-  twitter         String?
-  linkedin        String?
-  isActive        Boolean          @default(true) @map("is_active")
-  lastLogin       DateTime?        @map("last_login")
-  createdAt       DateTime         @default(now()) @map("created_at")
-  updatedAt       DateTime         @updatedAt @map("updated_at")
-  news            News[]
-  // news assigned to author
-  authoredNews    News[]           @relation("NewsAuthor")
-  // users following authors
-  followedAuthors AuthorFollower[] @relation("UserFollowers")
-
-  // users who follow this author
+  id                  Int              @id @default(autoincrement())
+  email               String           @unique
+  passwordHash        String           @map("password_hash")
+  name                String?
+  role                UserRole         @default(USER)
+  isActive            Boolean          @default(true) @map("is_active")
+  lastLogin           DateTime?        @map("last_login")
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+  bio                 String?          @db.Text
+  designation         String?
+  experience          String?
+  image               String?
+  linkedin            String?
+  nameEnglish         String?          @map("name_english")
+  twitter             String?
   authorFollowers     AuthorFollower[] @relation("AuthorFollowers")
-  savedArticles       SavedArticle[]
-  userNotifications   Notification[]   @relation("NotificationUser")
+  followedAuthors     AuthorFollower[] @relation("UserFollowers")
+  authoredNews        News[]           @relation("NewsAuthor")
+  news                News[]
   authorNotifications Notification[]   @relation("NotificationAuthor")
+  userNotifications   Notification[]   @relation("NotificationUser")
+  savedArticles       SavedArticle[]
 
   @@map("users")
 }
@@ -136,60 +132,54 @@ model Location {
 }
 
 model News {
-  id               Int           @id @default(autoincrement())
-  newsType         String        @default("Image") @map("news_type")
-  userId           Int?          @map("user_id")
-  ownerType        NewsOwnerType @default(ADMIN) @map("owner_type")
-  title            String?
-  slug             String?       @unique @db.VarChar(500)
-  summary          String?       @db.Text
-  description      String?       @db.Text
-  language         String        @default("Marathi")
-  featuredImage    String?       @map("featured_image")
-  galleryImage     String?       @map("gallery_image")
-  newsUrl          String?       @map("news_url")
-  tags             String?
-  sendNotification Boolean       @default(false) @map("send_notification")
-  publishedDate    DateTime?     @map("published_date")
-  isActive         Boolean       @default(true) @map("is_active")
-  viewCount        Int           @default(0) @map("view_count")
-  createdAt        DateTime      @default(now()) @map("created_at")
-  updatedAt        DateTime      @default(now()) @updatedAt @map("updated_at")
-
-  // MULTIPLE CATEGORY IDS
-  categoryIds String? @map("category_ids")
-
-  districtId    Int? @map("district_id")
-  subdivisionId Int? @map("subdivision_id")
-  tehsilId      Int? @map("tehsil_id")
-  locationId    Int? @map("location_id")
-
-  isBreakingNews     Boolean @default(false) @map("is_breaking_news")
-  isMiniTrendingNews Boolean @default(false) @map("is_mini_trending_news")
-  isTrendingNews     Boolean @default(false) @map("is_trending_news")
-
-  videoId  String? @map("video_id")
-  videoUrl String? @map("video_url")
-
-  user        User?        @relation(fields: [userId], references: [id])
-  district    District?    @relation(fields: [districtId], references: [id])
-  subdivision Subdivision? @relation(fields: [subdivisionId], references: [id])
-  tehsil      Tehsil?      @relation(fields: [tehsilId], references: [id])
-
-  galleryImages NewsGalleryImage[]
-  category      Category?          @relation(fields: [categoryId], references: [id])
-  categoryId    Int?
-  location      Location?          @relation(fields: [locationId], references: [id])
-  authorId      Int?               @map("author_id")
-
-  author  User?          @relation("NewsAuthor", fields: [authorId], references: [id])
-  savedBy SavedArticle[]
+  id                 Int                @id @default(autoincrement())
+  newsType           String             @default("Image") @map("news_type")
+  ownerType          NewsOwnerType      @default(ADMIN) @map("owner_type")
+  title              String?
+  slug               String?            @unique @db.VarChar(500)
+  summary            String?            @db.Text
+  description        String?            @db.Text
+  language           String             @default("Marathi")
+  featuredImage      String?            @map("featured_image")
+  newsUrl            String?            @map("news_url")
+  tags               String?
+  sendNotification   Boolean            @default(false) @map("send_notification")
+  publishedDate      DateTime?          @map("published_date")
+  isActive           Boolean            @default(true) @map("is_active")
+  viewCount          Int                @default(0) @map("view_count")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @default(now()) @updatedAt @map("updated_at")
+  districtId         Int?               @map("district_id")
+  subdivisionId      Int?               @map("subdivision_id")
+  tehsilId           Int?               @map("tehsil_id")
+  galleryImage       String?            @map("gallery_image")
+  categoryId         Int?
+  categoryIds        String?            @map("category_ids")
+  isBreakingNews     Boolean            @default(false) @map("is_breaking_news")
+  isMiniTrendingNews Boolean            @default(false) @map("is_mini_trending_news")
+  isTrendingNews     Boolean            @default(false) @map("is_trending_news")
+  videoId            String?            @map("video_id")
+  videoUrl           String?            @map("video_url")
+  locationId         Int?               @map("location_id")
+  userId             Int?               @map("user_id")
+  authorId           Int?               @map("author_id")
+  author             User?              @relation("NewsAuthor", fields: [authorId], references: [id])
+  category           Category?          @relation(fields: [categoryId], references: [id])
+  district           District?          @relation(fields: [districtId], references: [id])
+  location           Location?          @relation(fields: [locationId], references: [id])
+  subdivision        Subdivision?       @relation(fields: [subdivisionId], references: [id])
+  tehsil             Tehsil?            @relation(fields: [tehsilId], references: [id])
+  user               User?              @relation(fields: [userId], references: [id])
+  galleryImages      NewsGalleryImage[]
+  savedBy            SavedArticle[]
 
   @@index([userId], map: "news_user_id_fkey")
   @@index([districtId], map: "news_district_id_fkey")
   @@index([subdivisionId], map: "news_subdivision_id_fkey")
   @@index([tehsilId], map: "news_tehsil_id_fkey")
   @@index([authorId], map: "news_author_id_fkey")
+  @@index([categoryId], map: "news_categoryId_fkey")
+  @@index([locationId], map: "news_location_id_fkey")
   @@map("news")
 }
 
@@ -198,25 +188,12 @@ model SavedArticle {
   userId    Int      @map("user_id")
   newsId    Int      @map("news_id")
   createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id])
-  news News @relation(fields: [newsId], references: [id])
+  news      News     @relation(fields: [newsId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, newsId])
+  @@index([newsId], map: "saved_articles_news_id_fkey")
   @@map("saved_articles")
-}
-
-enum UserRole {
-  ADMIN
-  AUTHOR
-  USER
-  ADMANAGER
-}
-
-enum NewsOwnerType {
-  ADMIN
-  REPORTER
-  PENDING_REPORTER
 }
 
 model NewsGalleryImage {
@@ -246,11 +223,11 @@ model AuthorFollower {
   userId    Int      @map("user_id")
   authorId  Int      @map("author_id")
   createdAt DateTime @default(now()) @map("created_at")
-
-  user   User @relation("UserFollowers", fields: [userId], references: [id], onDelete: Cascade)
-  author User @relation("AuthorFollowers", fields: [authorId], references: [id], onDelete: Cascade)
+  author    User     @relation("AuthorFollowers", fields: [authorId], references: [id], onDelete: Cascade)
+  user      User     @relation("UserFollowers", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, authorId])
+  @@index([authorId], map: "author_followers_author_id_fkey")
   @@map("author_followers")
 }
 
@@ -265,14 +242,14 @@ model Notification {
   metadata  Json?
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  author    User?    @relation("NotificationAuthor", fields: [authorId], references: [id])
+  user      User?    @relation("NotificationUser", fields: [userId], references: [id])
 
-  user   User? @relation("NotificationUser", fields: [userId], references: [id])
-  author User? @relation("NotificationAuthor", fields: [authorId], references: [id])
-
+  @@index([authorId], map: "notifications_author_id_fkey")
+  @@index([userId], map: "notifications_user_id_fkey")
   @@map("notifications")
 }
 
-// Application-wide settings (single row expected)
 model Setting {
   id             Int      @id @default(autoincrement())
   appName        String?
@@ -291,7 +268,6 @@ model Setting {
   @@map("settings")
 }
 
-// SMTP settings (single row expected)
 model SmtpSetting {
   id        Int      @id @default(autoincrement())
   smtpType  String?  @map("smtp_type")
@@ -304,4 +280,17 @@ model SmtpSetting {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("smtp_settings")
+}
+
+enum UserRole {
+  ADMIN
+  AUTHOR
+  USER
+  ADMANAGER
+}
+
+enum NewsOwnerType {
+  ADMIN
+  REPORTER
+  PENDING_REPORTER
 }

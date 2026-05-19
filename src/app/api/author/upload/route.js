@@ -1,18 +1,7 @@
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
 import { NextResponse } from 'next/server'
-import { existsSync } from 'fs'
 import { verifyToken } from '@/lib/auth'
 import { AUTHOR_AUTH_COOKIE_NAME } from '@/lib/auth-cookie'
-
-const uploadFolder = ['uploads', 'admin', 'authors']
-
-function generateRandomFilename(originalName) {
-    const ext = originalName.split('.').pop()
-    const random = Math.random().toString(36).substring(2, 4)
-    const timestamp = Date.now()
-    return `${timestamp}-${random}.${ext}`
-}
+import { uploadToCloudinary, extractPublicIdFromUrl } from '@/lib/cloudinary'
 
 function getTokenFromRequest(request) {
     const authHeader = request.headers.get('Authorization')
@@ -69,28 +58,20 @@ export async function POST(request) {
         }
 
         const buffer = await file.arrayBuffer()
-        const filename = generateRandomFilename(file.name)
-
-        const uploadPath = join(process.cwd(), 'public', ...uploadFolder)
-
-        if (!existsSync(uploadPath)) {
-            await mkdir(uploadPath, { recursive: true })
-        }
-
-        const filepath = join(uploadPath, filename)
-        await writeFile(filepath, Buffer.from(buffer))
-
-        const imageUrl = `/uploads/admin/authors/${filename}`
+        const result = await uploadToCloudinary(Buffer.from(buffer), 'authors')
+        const imageUrl = result.secure_url
+        const publicId = extractPublicIdFromUrl(imageUrl) || result.public_id
 
         return NextResponse.json({
             success: true,
             message: 'Image uploaded successfully',
-            imageUrl
+            imageUrl,
+            publicId
         })
     } catch (error) {
         console.error('Upload error:', error)
         return NextResponse.json(
-            { success: false, error: 'Internal server error' },
+            { success: false, error: error.message || 'Internal server error' },
             { status: 500 }
         )
     }

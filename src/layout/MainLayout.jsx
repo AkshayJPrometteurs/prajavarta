@@ -11,15 +11,22 @@ import axiosInstance from "@/lib/axios";
 const MainLayout = ({ children, isBannerAdvertisement = false }) => {
 	const { screenWidth } = useScreenSize();
 	const [bannerImage, setBannerImage] = useState(null);
+
+	const normalizeBannerUrl = (image) => {
+		if (!image || typeof image !== 'string') return null
+		if (image.startsWith('http')) return image
+		return image.startsWith('/') ? image : `/${image}`
+	}
+
 	const getAdImage = async () => {
 		try {
 			const response = await axiosInstance.get(`/landing_page`);
 			if (response?.data?.success) {
-				setBannerImage(response?.data?.data?.banner?.image || null);
+				setBannerImage(normalizeBannerUrl(response?.data?.data?.banner?.image || null));
 			}
 		} catch (error) {
 			console.error("Error fetching ad image:", error);
-			return null;
+			setBannerImage(null);
 		}
 	}
 

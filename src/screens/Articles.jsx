@@ -212,7 +212,14 @@ const Articles = () => {
                         <div className="flex items-center gap-3 py-3 border-t border-b border-(--border-default) my-4">
                             <div className="w-12 h-12 rounded-full bg-(--brand-primary-light) flex items-center justify-center font-bold text-(--brand-primary) text-base shrink-0 overflow-hidden">
                                 {article.author?.image ? (
-                                    <img src={article.author.image} alt={article.author.name} className="w-full h-full object-cover" />
+                                    <CustomImage
+                                        src={article.author.image}
+                                        alt={article.author.name}
+                                        width={48}
+                                        height={48}
+                                        className="w-full h-full object-cover"
+                                        style={{ height : 48 }}
+                                    />
                                 ) : (
                                     article.author?.name ? article.author.name.substring(0, 2).toUpperCase() : "PA"
                                 )}
@@ -271,6 +278,7 @@ const Articles = () => {
                             width={1200}
                             height={675}
                             className="w-full h-auto rounded"
+                            console={true}
                         />
                         {article.imageCaption && (
                             <p className="mr mt-2 text-xs leading-normal text-(--text-tertiary)">
