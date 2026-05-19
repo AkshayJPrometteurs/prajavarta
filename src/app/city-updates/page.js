@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import CityUpdatesNews from "@/screens/CityUpdatesNews";
 
 export const metadata = {
@@ -6,5 +7,9 @@ export const metadata = {
 }
 
 export default function CityUpdatesPage() {
-    return <CityUpdatesNews />;
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <CityUpdatesNews />
+        </Suspense>
+    )
 }

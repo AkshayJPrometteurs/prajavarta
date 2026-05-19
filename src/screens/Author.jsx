@@ -205,6 +205,7 @@ const Author = () => {
                             stats={stats}
                             related={relatedEditors}
                             isAuthenticated={isAuthenticated}
+                            author={author}
                         />
                     }>
                     {/* Latest articles */}

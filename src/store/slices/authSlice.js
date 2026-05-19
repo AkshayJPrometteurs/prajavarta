@@ -113,6 +113,7 @@ export const logoutUser = createAsyncThunk(
 		try {
 			await axiosInstance.post('/auth/logout')
 			Cookies.remove(AUTH_COOKIE_NAME)
+			Cookies.remove(AUTHOR_AUTH_COOKIE_NAME)
 			Cookies.remove(ADMIN_AUTH_COOKIE_NAME)
 		} catch (error) {
 			return rejectWithValue('Logout failed')
@@ -218,6 +219,25 @@ const authSlice = createSlice({
 				state.initialized = true
 			})
 			.addCase(checkAuth.rejected, (state) => {
+				state.loading = false
+				state.user = null
+				state.token = null
+				state.isAuthenticated = false
+				state.initialized = true
+			})
+
+		// Check Author Auth
+		builder
+			.addCase(checkAuthAuthor.pending, (state) => {
+				state.loading = true
+			})
+			.addCase(checkAuthAuthor.fulfilled, (state, action) => {
+				state.loading = false
+				state.user = action.payload
+				state.isAuthenticated = true
+				state.initialized = true
+			})
+			.addCase(checkAuthAuthor.rejected, (state) => {
 				state.loading = false
 				state.user = null
 				state.token = null

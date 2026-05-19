@@ -36,6 +36,7 @@ axiosInstance.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             Cookies.remove(AUTH_COOKIE_NAME)
+            Cookies.remove(AUTHOR_AUTH_COOKIE_NAME)
             Cookies.remove(ADMIN_AUTH_COOKIE_NAME)
         }
         return Promise.reject(error)

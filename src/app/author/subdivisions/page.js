@@ -1,4 +1,4 @@
-import SubdivisionListingScreen from '@/screens/admin/SubdivisionListingScreen'
+import SubdivisionListingScreen from '@/screens/admin/subdivision/SubdivisionListingScreen'
 
 export const metadata = {
   title: 'Manage Subdivisions - Prajavarta Admin',

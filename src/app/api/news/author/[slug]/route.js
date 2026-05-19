@@ -27,6 +27,8 @@ export async function GET(request, { params }) {
             return NextResponse.json({ success: false, error: 'Author not found' }, { status: 404 })
         }
 
+        console.log('Author found:', author) // Debug log to verify author details
+
         // 2. Fetch Author's Latest Articles (Paginated)
         const [articles, totalArticles] = await Promise.all([
             prisma.news.findMany({
@@ -81,9 +83,10 @@ export async function GET(request, { params }) {
         }
 
         // 5. Related Editors (Other active authors) with follow status
-        let relatedEditors = await prisma.author.findMany({
+        let relatedEditors = await prisma.user.findMany({
             where: {
                 id: { not: author.id },
+                role: 'AUTHOR',
                 isActive: true
             },
             take: 3

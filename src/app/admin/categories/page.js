@@ -1,4 +1,5 @@
-import CategoryListingScreen from '@/screens/admin/CategoryListingScreen'
+import CategoryListingScreen from "@/screens/admin/category/CategoryListingScreen"
+
 
 export const metadata = {
   title: 'Manage Categories - Prajavarta Admin',

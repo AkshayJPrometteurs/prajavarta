@@ -1,4 +1,4 @@
-import TehsilListingScreen from '@/screens/admin/TehsilListingScreen'
+import TehsilListingScreen from '@/screens/admin/tehsil/TehsilListingScreen'
 
 export const metadata = {
   title: 'Manage Tehsils - Prajavarta Admin',

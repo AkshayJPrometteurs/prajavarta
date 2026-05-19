@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import MiniTrendingNews from "@/screens/MiniTrendingNews";
 
 export const metadata = {
@@ -6,5 +7,9 @@ export const metadata = {
 }
 
 export default function MiniTrendingPage() {
-    return <MiniTrendingNews />;
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <MiniTrendingNews />
+        </Suspense>
+    )
 }

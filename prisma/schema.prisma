@@ -30,8 +30,10 @@ model User {
   followedAuthors AuthorFollower[] @relation("UserFollowers")
 
   // users who follow this author
-  authorFollowers AuthorFollower[] @relation("AuthorFollowers")
-  savedArticles   SavedArticle[]
+  authorFollowers     AuthorFollower[] @relation("AuthorFollowers")
+  savedArticles       SavedArticle[]
+  userNotifications   Notification[]   @relation("NotificationUser")
+  authorNotifications Notification[]   @relation("NotificationAuthor")
 
   @@map("users")
 }
@@ -250,4 +252,56 @@ model AuthorFollower {
 
   @@unique([userId, authorId])
   @@map("author_followers")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  title     String
+  message   String?  @db.Text
+  type      String?
+  userId    Int?     @map("user_id")
+  authorId  Int?     @map("author_id")
+  isRead    Boolean  @default(false) @map("is_read")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user   User? @relation("NotificationUser", fields: [userId], references: [id])
+  author User? @relation("NotificationAuthor", fields: [authorId], references: [id])
+
+  @@map("notifications")
+}
+
+// Application-wide settings (single row expected)
+model Setting {
+  id             Int      @id @default(autoincrement())
+  appName        String?
+  appLogo        String?
+  appDescription String?  @db.Text
+  appVersion     String?
+  author         String?
+  contact        String?
+  email          String?
+  website        String?
+  developedBy    String?
+  privacyPolicy  String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// SMTP settings (single row expected)
+model SmtpSetting {
+  id        Int      @id @default(autoincrement())
+  smtpType  String?  @map("smtp_type")
+  host      String?  @map("host")
+  email     String?  @map("email")
+  password  String?  @map("password")
+  secure    String?  @map("secure")
+  port      Int?     @map("port")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("smtp_settings")
 }

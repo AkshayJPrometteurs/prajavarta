@@ -10,7 +10,7 @@ import { User } from "lucide-react";
 import { getShortName } from "@/lib/helper";
 import axiosInstance from "@/lib/axios";
 
-const AuthorSidebar = ({ stats, related = [], isAuthenticated }) => {
+const AuthorSidebar = ({ stats, related = [], isAuthenticated, author }) => {
     const { screenWidth } = useScreenSize();
     const [localRelated, setLocalRelated] = useState(related);
     const [loadingStates, setLoadingStates] = useState({});
@@ -86,7 +86,11 @@ const AuthorSidebar = ({ stats, related = [], isAuthenticated }) => {
             {/* Related editors */}
             {localRelated.length > 0 && (
                 <div className="p-5 border border-(--border-default) rounded-lg">
-                    <CategoryUnderline name="Authors" label="संबंधित संपादक" />
+                    <CategoryUnderline
+                        name="Authors"
+                        label="संबंधित संपादक"
+                        url={`/related-authors/?authorName=${author.nameEnglish || author.name}`}
+                    />
 
                     <div className="flex flex-col gap-3.5">
                         {localRelated.map((p, i) => (
@@ -116,7 +120,7 @@ const AuthorSidebar = ({ stats, related = [], isAuthenticated }) => {
                                     <button 
                                         onClick={() => handleFollowEditor(p.id)}
                                         disabled={loadingStates[p.id]}
-                                        className={`text-[11px] px-2.5 py-1 border font-semibold cursor-pointer rounded transition-all flex items-center justify-center min-w-[70px] ${
+                                        className={`text-[11px] px-2.5 py-1 border font-semibold cursor-pointer rounded transition-all flex items-center justify-center min-w-17.5 ${
                                             p.isFollowing 
                                             ? 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200' 
                                             : 'bg-white border-(--brand-primary) text-(--brand-primary) hover:bg-(--brand-primary) hover:text-white'

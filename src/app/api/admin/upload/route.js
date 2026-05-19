@@ -7,7 +7,9 @@ const uploadFolders = {
     categories: ['uploads', 'admin', 'categories'],
     'main-advertisement-banner': ['uploads', 'admin', 'main-advertisement-banner'],
     news: ['uploads', 'admin', 'news'],
-    authors: ['uploads', 'admin', 'authors']
+    authors: ['uploads', 'admin', 'authors'],
+    settings: ['uploads', 'admin', 'settings'],
+    users: ['uploads', 'admin', 'users'],
 }
 
 // Generate random filename
