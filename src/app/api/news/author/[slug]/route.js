@@ -11,13 +11,15 @@ export async function GET(request, { params }) {
         const limit = parseInt(searchParams.get('limit') || '9')
         const skip = (page - 1) * limit
 
+        console.log('Received slug:', slug) // Debug log to verify slug value
+
         // 1. Fetch Author Details
         const author = await prisma.user.findFirst({
             where: {
+                role: 'AUTHOR',
                 OR: [
                     { nameEnglish: slug },
                     { name: decodeURIComponent(slug) },
-                    { role: 'AUTHOR' }
                 ],
                 isActive: true
             }
